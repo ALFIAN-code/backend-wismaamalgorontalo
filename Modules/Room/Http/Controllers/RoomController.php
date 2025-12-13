@@ -2,55 +2,101 @@
 
 namespace Modules\Room\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Room\Models\Room;
+use App\Http\Controllers\Controller;
 
 class RoomController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('room::index');
+        $rooms = Room::latest()->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => "List Data Kamar",
+            'data' => $rooms,
+        ], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request)
     {
-        return view('room::create');
+        $validated = $request->validate([
+            'number' => 'required|unique:rooms,number',
+            'type' => 'required|string',
+            'price' => 'required|numeric',
+            'status' => 'required|in:available,occupied,maintenance',
+            'description' => 'nullable|string',
+        ]);
+
+        $room = Room::create($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Kamar berhasil ditambahkan',
+            'data' => $room
+        ], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
     public function show($id)
     {
-        return view('room::show');
+        $room = Room::find($id);
+
+        if (!$room) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Kamar tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail Kamar',
+            'data' => $room
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function update(Request $request, $id)
     {
-        return view('room::edit');
+        $room = Room::find($id);
+
+        if (!$room) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Kamar tidak ditemukan',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'number' => 'required|unique:room,number,' . $id,
+            'type' => 'required|string',
+            'price' => 'required|numeric',
+            'status' => 'required|in:available,occupied,maintenance',
+            'description' => 'nullable|string',
+        ]);
+
+        $room->update($validated);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data kamar berhasil diperbarui',
+            'data' => $room
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
+    public function destroy($id)
+    {
+        $room = Room::find($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
+        if (!$room) {
+            return response()->json(['status' => false, 'message' => 'Kamar tidak ditemukan'], 404);
+        }
+
+        $room->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Kamar berhasil dihapus',
+        ], 200);
+    }
 }
