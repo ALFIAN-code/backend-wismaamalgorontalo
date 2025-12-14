@@ -29,7 +29,17 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '',
+        'description' => 'Dokumentasi API Wisma Amal Gorontalo',
+    ],
+
+    'security' => [
+        'default' => 'Sanctum',
+        'types' => [
+            'Sanctum' => [
+                'type' => 'http',
+                'scheme' => 'bearer',
+            ],
+        ],
     ],
 
     /*
