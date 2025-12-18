@@ -18,6 +18,7 @@ class Lease extends Model
         'end_date',
         'status',
         'total_price',
+        'payment_proof',
     ];
 
     protected $casts = [

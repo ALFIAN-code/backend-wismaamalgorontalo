@@ -12,4 +12,5 @@ Route::middleware(['auth:sanctum'])->prefix('resident')->group(function () {
     // Route lease
     Route::post('leases', [LeaseController::class, 'store']);
     Route::get('leases', [LeaseController::class, 'myLeases']);
+    Route::post('leases/{id}/pay', [LeaseController::class, 'uploadPayment']);
 });

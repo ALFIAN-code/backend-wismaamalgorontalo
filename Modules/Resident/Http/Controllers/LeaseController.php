@@ -11,10 +11,11 @@ use Modules\Resident\Models\Lease;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Modules\Resident\Models\Resident;
+use Modules\Resident\Http\Requests\StoreLeaseRequest;
 
 class LeaseController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreLeaseRequest $request)
     {
         $user = Auth::user();
         $resident = Resident::where('user_id', $user->id)->first();
@@ -47,7 +48,7 @@ class LeaseController extends Controller
                     'room_id'     => $room->id,
                     'start_date'  => $request->start_date,
                     'end_date'    => $endDate,
-                    'status'      => 'active',
+                    'status'      => 'pending',
                     'total_price' => $totalPrice,
                 ]);
 
@@ -88,5 +89,45 @@ class LeaseController extends Controller
             'message' => 'List sewa saya',
             'data' => $leases
         ], 200);
+    }
+
+    public function uploadPayment(Request $request, $id)
+    {
+        $request->validate([
+            'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $user = Auth::user();
+        $resident = Resident::where('user_id', $user->id)->first();
+
+        $lease = Lease::where('id', $id)
+            ->where('resident_id', $resident->id)
+            ->first();
+
+        if (!$lease) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data sewa tidak ditemukan.'
+            ], 404);
+        }
+
+        if ($request->hasFile('payment_proof')) {
+            $path = $request->file('payment_proof')->store('payments', 'public');
+
+            $lease->update([
+                'payment_proof' => $path,
+                'status' => 'verified',
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Bukti pembayaran berhasil diupload',
+                'data' => $lease
+            ], 200);
+        }
+        return response()->json([
+            'status' => false,
+            'message' => 'Gagal upload gambar.'
+        ], 400);
     }
 }
