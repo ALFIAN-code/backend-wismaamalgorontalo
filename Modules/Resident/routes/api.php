@@ -17,7 +17,7 @@ Route::middleware(['auth:sanctum'])->prefix('resident')->group(function () {
 });
 
 // Route admin
-Route::middleware(['auth:sanctum', 'role;admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('leases', [AdminLeaseController::class, 'index']);
     Route::get('leases/{id}', [AdminLeaseController::class, 'show']);
     Route::post('leases/{id}/status', [AdminLeaseController::class, 'updateStatus']);

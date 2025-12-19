@@ -32,7 +32,7 @@ class AdminLeaseController extends Controller
     {
         $lease = Lease::with(['resident.user', 'room'])->find($id);
 
-        if ($lease) {
+        if (!$lease) {
             return response()->json([
                 'status' => false,
                 'message' => 'Data tidak ditemukan',
