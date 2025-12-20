@@ -5,6 +5,7 @@ namespace Modules\Resident\Models;
 use App\Models\User;
 use Modules\Room\Models\Room;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Resident\Enums\LeaseStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Lease extends Model
@@ -22,6 +23,7 @@ class Lease extends Model
     ];
 
     protected $casts = [
+        'status' => LeaseStatus::class,
         'start_date' => 'date',
         'end_date' => 'date',
     ];

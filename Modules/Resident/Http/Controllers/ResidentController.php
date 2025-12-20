@@ -38,7 +38,7 @@ class ResidentController extends Controller
         $request->validate([
             'id_card_number' => 'required|string|max:20',
             'phone_number' => 'required|string|max:20',
-            'gender' => 'required|in:make,female',
+            'gender' => 'required|in:male,female',
             'job' => 'nullable|string',
             'address_ktp' => 'required|string',
             'ktp_photo' => 'nullable|image|max:2048',

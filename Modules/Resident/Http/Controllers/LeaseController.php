@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Modules\Resident\Models\Lease;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Modules\Resident\Enums\LeaseStatus;
 use Modules\Resident\Models\Resident;
 use Modules\Resident\Http\Requests\StoreLeaseRequest;
+use Modules\Room\Enums\RoomStatus;
 
 class LeaseController extends Controller
 {
@@ -29,7 +31,7 @@ class LeaseController extends Controller
 
         $room = Room::find($request->room_id);
 
-        if (!$room->status !== 'available') {
+        if ($room->status !== RoomStatus::AVAILABLE) {
             return response()->json([
                 'status' => false,
                 'message' => 'Maaf, kamar ini sudah tidak tersedia.'
@@ -38,7 +40,7 @@ class LeaseController extends Controller
 
         try {
             $lease = DB::transaction(function () use ($request, $resident, $room) {
-                $endDate = \Carbon\Carbon::parse($request->start_date)
+                $endDate = Carbon::parse($request->start_date)
                     ->addMonths($request->duration_months);
 
                 $totalPrice = $room->price * $request->duration_months;
@@ -48,11 +50,11 @@ class LeaseController extends Controller
                     'room_id'     => $room->id,
                     'start_date'  => $request->start_date,
                     'end_date'    => $endDate,
-                    'status'      => 'pending',
+                    'status'      => LeaseStatus::PENDING,
                     'total_price' => $totalPrice,
                 ]);
 
-                $room->update(['status' => 'occupied']);
+                $room->update(['status' => RoomStatus::OCCUPIED]);
 
                 return $newLease;
             });
@@ -116,7 +118,7 @@ class LeaseController extends Controller
 
             $lease->update([
                 'payment_proof' => $path,
-                'status' => 'verified',
+                'status' => LeaseStatus::VERIFIED,
             ]);
 
             return response()->json([

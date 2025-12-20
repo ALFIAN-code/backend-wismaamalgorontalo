@@ -5,7 +5,10 @@ namespace Modules\Resident\Http\Controllers;
 use Illuminate\Http\Request;
 use Modules\Room\Models\Room;
 use Modules\Resident\Models\Lease;
+use Modules\Room\Enums\RoomStatus;
 use App\Http\Controllers\Controller;
+use Illuminate\Validation\Rules\Enum;
+use Modules\Resident\Enums\LeaseStatus;
 
 class AdminLeaseController extends Controller
 {
@@ -48,7 +51,8 @@ class AdminLeaseController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:active,rejected,cancelled',
+            'status' => 'required',
+            new Enum(LeaseStatus::class),
         ]);
 
         $lease = Lease::find($id);
@@ -62,12 +66,12 @@ class AdminLeaseController extends Controller
 
         $room = Room::find($lease->room_id);
 
-        if ($request->status == 'active') {
-            $lease->update(['status' => 'active']);
+        if ($request->status == LeaseStatus::ACTIVE->value) {
+            $lease->update(['status' => LeaseStatus::ACTIVE]);
             $message = 'Sewa disetujui. Penghuni resmi aktif.';
         } else {
             $lease->update(['status' => $request->status]);
-            $room->update(['status' => 'available']);
+            $room->update(['status' => RoomStatus::AVAILABLE]);
             $message = 'Sewa ditolak/dibatalkan. Kamar kembali tersedia';
         }
 
