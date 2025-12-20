@@ -5,55 +5,33 @@ namespace Modules\Room\Http\Controllers;
 use Illuminate\Http\Request;
 use Modules\Room\Models\Room;
 use App\Http\Controllers\Controller;
+use Modules\Room\Http\Requests\StoreRoomRequest;
+use Modules\Room\Transformers\RoomResource;
 
 class RoomController extends Controller
 {
+    use \App\Traits\ApiResponse;
+
     public function index()
     {
         $rooms = Room::latest()->get();
 
-        return response()->json([
-            'status' => true,
-            'message' => "List Data Kamar",
-            'data' => $rooms,
-        ], 200);
+        return $this->apiSucces(RoomResource::collection($rooms), "List data kamar");
     }
 
-    public function store(Request $request)
+    public function store(StoreRoomRequest $request)
     {
-        $validated = $request->validate([
-            'number' => 'required|unique:rooms,number',
-            'type' => 'required|string',
-            'price' => 'required|numeric',
-            'status' => 'required|in:available,occupied,maintenance',
-            'description' => 'nullable|string',
-        ]);
+        $room = Room::create($request->validated());
 
-        $room = Room::create($validated);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Kamar berhasil ditambahkan',
-            'data' => $room
-        ], 201);
+        return $this->apiSucces($room, 'Kamar berhasil ditambahkan', 201);
     }
 
     public function show($id)
     {
         $room = Room::find($id);
+        if (!$room) return $this->apiError('Kamar tidak ditemukan', 404);
 
-        if (!$room) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Kamar tidak ditemukan',
-            ], 404);
-        }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Detail Kamar',
-            'data' => $room
-        ], 200);
+        return $this->apiSucces($room);
     }
 
     public function update(Request $request, $id)

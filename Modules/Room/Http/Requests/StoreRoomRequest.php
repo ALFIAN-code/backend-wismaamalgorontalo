@@ -1,0 +1,26 @@
+<?php
+
+namespace Modules\Room\Http\Requests;
+
+use Illuminate\Validation\Rule;
+use Modules\Room\Enums\RoomStatus;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreRoomRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'number' => ['required', 'string', 'unique:rooms,number'],
+            'type' => ['required', 'string'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'status' => ['required', Rule::enum(RoomStatus::class)],
+            'description' => ['nullable', 'string'],
+        ];
+    }
+}

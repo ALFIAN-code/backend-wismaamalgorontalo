@@ -4,13 +4,13 @@ namespace Modules\Resident\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * @bodyParam room_id int required ID Kamar yang ingin disewa. Example: 1
- * @bodyParam start_date date required Tanggal mulai sewa (Format: YYYY-MM-DD). Example: 2025-12-20
- * @bodyParam duration_months int required Durasi sewa dalam bulan (1-12). Example: 3
- */
 class StoreLeaseRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return true;
+    }
+
     public function rules(): array
     {
         return [
@@ -27,10 +27,5 @@ class StoreLeaseRequest extends FormRequest
             'start_date.after_or_equal' => 'Tanggal mulai sewa minimal hari ini.',
             'duration_months.max' => 'Maksimal sewa adalah 12 bulan.',
         ];
-    }
-
-    public function authorize(): bool
-    {
-        return true;
     }
 }

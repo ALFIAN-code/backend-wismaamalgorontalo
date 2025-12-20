@@ -13,62 +13,44 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Resident\Enums\LeaseStatus;
 use Modules\Resident\Models\Resident;
 use Modules\Resident\Http\Requests\StoreLeaseRequest;
+use Modules\Resident\Services\LeaseService;
 use Modules\Room\Enums\RoomStatus;
 
 class LeaseController extends Controller
 {
+    use \App\Traits\ApiResponse;
+
+    protected $leaseService;
+
+    public function __construct(LeaseService $leaseService)
+    {
+        $this->leaseService = $leaseService;
+    }
+
     public function store(StoreLeaseRequest $request)
     {
         $user = Auth::user();
 
-        if (!$user->resident) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Anda harus melengkapi biodata penghuni terlebih dahulu.',
-            ], 403);
+        if (!$user->residenpt) {
+            return $this->apiError('Anda harus melengkapi biodaya penghuni terlebih dahulu', 403);
         }
 
         $room = Room::findOrFail($request->room_id);
 
         if ($room->status !== RoomStatus::AVAILABLE) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Maaf, kamar ini sudah tidak tersedia.'
-            ], 400);
+            return $this->apiError('Maaf, kamar ini sudah tidak tersedia', 400);
         }
 
         try {
-            $lease = DB::transaction(function () use ($request, $user, $room) {
-                $endDate = Carbon::parse($request->start_date)
-                    ->addMonths($request->duration_months);
+            $lease = $this->leaseService->createLease(
+                Auth::user(),
+                $room,
+                $request->validated(),
+            );
 
-                $totalPrice = $room->price * $request->duration_months;
-
-                $newLease = Lease::create([
-                    'user_id' => $user->id,
-                    'room_id'     => $room->id,
-                    'start_date'  => $request->start_date,
-                    'end_date'    => $endDate,
-                    'status'      => LeaseStatus::PENDING,
-                    'total_price' => $totalPrice,
-                    'price_per_month' => $room->price,
-                ]);
-
-                $room->update(['status' => RoomStatus::OCCUPIED]);
-
-                return $newLease;
-            });
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Sewa kamar berhasil dibuat.',
-                'data' => $lease
-            ], 201);
+            return $this->apiSucces($lease, 'Sewa kamar berhasil dibuat', 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal memproses sewa: ' . $e->getMessage()
-            ], 500);
+            return $this->apiError('Gagal memproses sewa: ' . $e->getMessage(), 500);
         }
     }
 
@@ -84,7 +66,7 @@ class LeaseController extends Controller
             ], 200);
         }
 
-        $leases = Lease::with('room')->where('resident_id', $resident->id)->latest()->get();
+        $leases = Lease::with('room')->where('user_id', Auth::id())->latest()->get();
 
         return response()->json([
             'status' => true,
