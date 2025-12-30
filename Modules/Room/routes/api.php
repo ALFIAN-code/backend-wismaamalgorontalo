@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Room\Http\Controllers\RoomController;
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {});
+Route::get('rooms', [RoomController::class, 'index']);
+Route::get('rooms/{id}', [RoomController::class, 'show']);
 
-Route::apiResource('rooms', RoomController::class);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('rooms', [RoomController::class, 'store']);
+    Route::put('rooms/{id}', [RoomController::class, 'update']);
+    Route::delete('rooms/{id}', [RoomController::class, 'destroy']);
+});

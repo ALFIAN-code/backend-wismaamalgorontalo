@@ -13,6 +13,7 @@ class RoomResource extends JsonResource
             'id' => $this->id,
             'number' => $this->number,
             'type' => $this->type,
+            'price' => $this->price,
             'price_formatted' => 'Rp ' . number_format($this->price, 0, ',', '.'),
             'status' => $this->status->label(),
             'status_code' => $this->status->value,

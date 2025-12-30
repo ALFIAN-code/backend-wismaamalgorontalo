@@ -7,6 +7,7 @@ use Modules\Room\Models\Room;
 use App\Http\Controllers\Controller;
 use Modules\Room\Http\Requests\StoreRoomRequest;
 use Modules\Room\Transformers\RoomResource;
+use App\Traits\ApiResponse;
 
 class RoomController extends Controller
 {
@@ -14,16 +15,15 @@ class RoomController extends Controller
 
     public function index()
     {
-        $rooms = Room::latest()->get();
-
-        return $this->apiSucces(RoomResource::collection($rooms), "List data kamar");
+        $room = Room::latest()->get();
+        return $this->apiSuccess(RoomResource::collection($room), 'List data kamar');
     }
 
     public function store(StoreRoomRequest $request)
     {
         $room = Room::create($request->validated());
 
-        return $this->apiSucces($room, 'Kamar berhasil ditambahkan', 201);
+        return $this->apiSuccess($room, 'Kamar berhasil ditambahkan', 201);
     }
 
     public function show($id)
@@ -31,7 +31,7 @@ class RoomController extends Controller
         $room = Room::find($id);
         if (!$room) return $this->apiError('Kamar tidak ditemukan', 404);
 
-        return $this->apiSucces($room);
+        return $this->apiSuccess($room, 'Detail data kamar');
     }
 
     public function update(Request $request, $id)
@@ -39,10 +39,7 @@ class RoomController extends Controller
         $room = Room::find($id);
 
         if (!$room) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Kamar tidak ditemukan',
-            ], 404);
+            return $this->apiError('Kamar tidak ditemukan', 404);
         }
 
         $validated = $request->validate([
@@ -55,11 +52,7 @@ class RoomController extends Controller
 
         $room->update($validated);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data kamar berhasil diperbarui',
-            'data' => $room
-        ], 200);
+        return $this->apiSuccess($room, 'Kamar berhasil diperbarui');
     }
 
     public function destroy($id)
@@ -67,7 +60,7 @@ class RoomController extends Controller
         $room = Room::find($id);
 
         if (!$room) {
-            return response()->json(['status' => false, 'message' => 'Kamar tidak ditemukan'], 404);
+            return $this->apiError('Kamar tidak ditemukan', 404);
         }
 
         $room->delete();
