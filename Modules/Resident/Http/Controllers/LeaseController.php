@@ -27,6 +27,7 @@ class LeaseController extends Controller
         $this->leaseService = $leaseService;
     }
 
+    // pengajuan sewa
     public function store(StoreLeaseRequest $request)
     {
         $user = Auth::user();
@@ -48,12 +49,13 @@ class LeaseController extends Controller
                 $request->validated(),
             );
 
-            return $this->apiSucces($lease, 'Sewa kamar berhasil dibuat', 201);
+            return $this->apiSuccess($lease, 'Sewa kamar berhasil dibuat', 201);
         } catch (\Exception $e) {
             return $this->apiError('Gagal memproses sewa: ' . $e->getMessage(), 500);
         }
     }
 
+    // melihat riwayat sewa user yang sedang login
     public function myLeases()
     {
         $user = Auth::user();
@@ -75,6 +77,7 @@ class LeaseController extends Controller
         ], 200);
     }
 
+    // upload bukti pembayaran sewa dan ubah status jadi verified
     public function uploadPayment(Request $request, $id)
     {
         $request->validate([

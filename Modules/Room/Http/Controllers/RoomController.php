@@ -14,12 +14,15 @@ class RoomController extends Controller
 {
     use ApiResponse;
 
+    // menampilkan data semua kamar
     public function index()
     {
         $room = Room::latest()->get();
         return $this->apiSuccess(RoomResource::collection($room), 'List data kamar');
     }
 
+
+    // menambahkan data kamar baru
     public function store(StoreRoomRequest $request)
     {
         $room = Room::create($request->validated());
@@ -27,6 +30,7 @@ class RoomController extends Controller
         return $this->apiSuccess($room, 'Kamar berhasil ditambahkan', 201);
     }
 
+    // menampilkan data detail satu kamar
     public function show($id)
     {
         $room = Room::find($id);
@@ -35,6 +39,7 @@ class RoomController extends Controller
         return $this->apiSuccess($room, 'Detail data kamar');
     }
 
+    // memperbarui data kamar
     public function update(UpdateRoomRequest $request, $id)
     {
         $room = Room::find($id);
@@ -48,6 +53,7 @@ class RoomController extends Controller
         return $this->apiSuccess($room, 'Data kamar berhasil diperbarui');
     }
 
+    // menghapus data kamar
     public function destroy($id)
     {
         $room = Room::find($id);

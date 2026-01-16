@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ResidentController extends Controller
 {
+    // cek apakah user sudah melengkapi biodata atau belum
     public function show()
     {
         $user = Auth::user();
@@ -31,6 +32,7 @@ class ResidentController extends Controller
         ], 200);
     }
 
+    // menyimpan atau memperbarui biodata user
     public function store(Request $request)
     {
         $user = Auth::user();

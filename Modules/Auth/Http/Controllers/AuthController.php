@@ -15,6 +15,7 @@ class AuthController extends Controller
 {
     use ApiResponse;
 
+    // membuat user baru
     public function register(RegisterRequest $request)
     {
         $user = User::create([
@@ -34,6 +35,7 @@ class AuthController extends Controller
         ], 'Registrasi berhasil', 201);
     }
 
+    // login user
     public function login(Request $request)
     {
         $request->validate([
@@ -56,6 +58,7 @@ class AuthController extends Controller
         ], 'Login berhasil');
     }
 
+    // Logout user
     public function logout(Request $request)
     {
         /** @var \App\Models\User $user */
@@ -70,12 +73,14 @@ class AuthController extends Controller
         return $this->apiSuccess(null, 'Logout berhasil');
     }
 
+    // mengambil data user yang sedang login
     public function me(Request $request)
     {
         return $this->apiSuccess(Auth::user(), 'Profile User');
     }
 
 
+    // daftar permission use yang sedang login
     public function myPermissions()
     {
         /** @var \App\Models\User $user */

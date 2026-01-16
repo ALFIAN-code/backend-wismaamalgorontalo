@@ -23,6 +23,7 @@ class AdminLeaseController extends Controller
         $this->leaseService = $leaseService;
     }
 
+    // melihat semua data pengajuan sewa dari user
     public function index(Request $request)
     {
         $status = $request->query('status');
@@ -42,6 +43,7 @@ class AdminLeaseController extends Controller
         ]);
     }
 
+    // melihat data detail sewa
     public function show($id)
     {
         $lease = Lease::with(['resident.user', 'room'])->find($id);
@@ -59,6 +61,7 @@ class AdminLeaseController extends Controller
         ]);
     }
 
+    // memperbaru status sewa menjadi diterima atau ditolak
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
