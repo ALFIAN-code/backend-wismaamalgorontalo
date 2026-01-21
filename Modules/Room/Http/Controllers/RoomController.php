@@ -17,7 +17,7 @@ class RoomController extends Controller
     // menampilkan data semua kamar
     public function index()
     {
-        $room = Room::latest()->get();
+        $room = Room::with('images')->latest()->get();
         return $this->apiSuccess(RoomResource::collection($room), 'List data kamar');
     }
 
@@ -33,10 +33,11 @@ class RoomController extends Controller
     // menampilkan data detail satu kamar
     public function show($id)
     {
-        $room = Room::find($id);
-        if (!$room) return $this->apiError('Kamar tidak ditemukan', 404);
+        $room = Room::with('images')->find($id);
+        if (!$room)
+            return $this->apiError('Kamar tidak ditemukan', 404);
 
-        return $this->apiSuccess($room, 'Detail data kamar');
+        return $this->apiSuccess(new RoomResource($room), 'Detail data kamar');
     }
 
     // memperbarui data kamar
@@ -68,5 +69,59 @@ class RoomController extends Controller
             'status' => true,
             'message' => 'Kamar berhasil dihapus',
         ], 200);
+    }
+
+    // upload foto kamar (multiple)
+    public function uploadImages(Request $request, $id)
+    {
+        $room = Room::find($id);
+
+        if (!$room) {
+            return $this->apiError('Kamar tidak ditemukan', 404);
+        }
+
+        $request->validate([
+            'images' => 'required|array',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $uploadedImages = [];
+
+        foreach ($request->file('images') as $index => $image) {
+            $path = $image->store('rooms', 'public');
+
+            $roomImage = $room->images()->create([
+                'image_path' => $path,
+                'order' => $room->images()->count() + $index,
+            ]);
+
+            $uploadedImages[] = [
+                'id' => $roomImage->id,
+                'url' => $roomImage->image_url,
+                'order' => $roomImage->order,
+            ];
+        }
+
+        return $this->apiSuccess($uploadedImages, 'Foto berhasil diupload', 201);
+    }
+
+    // hapus foto kamar
+    public function deleteImage($roomId, $imageId)
+    {
+        $room = Room::find($roomId);
+
+        if (!$room) {
+            return $this->apiError('Kamar tidak ditemukan', 404);
+        }
+
+        $image = $room->images()->find($imageId);
+
+        if (!$image) {
+            return $this->apiError('Foto tidak ditemukan', 404);
+        }
+
+        $image->delete();
+
+        return $this->apiSuccess(null, 'Foto berhasil dihapus');
     }
 }

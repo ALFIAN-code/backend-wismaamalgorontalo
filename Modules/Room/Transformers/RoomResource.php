@@ -18,6 +18,16 @@ class RoomResource extends JsonResource
             'status' => $this->status->label(),
             'status_code' => $this->status->value,
             'description' => $this->description,
+            'facilities' => $this->facilities ?? [],
+            'images' => $this->whenLoaded('images', function () {
+                return $this->images->map(function ($image) {
+                    return [
+                        'id' => $image->id,
+                        'url' => $image->image_url,
+                        'order' => $image->order,
+                    ];
+                });
+            }),
         ];
     }
 }
