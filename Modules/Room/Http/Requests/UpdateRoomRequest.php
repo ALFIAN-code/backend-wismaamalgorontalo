@@ -18,6 +18,7 @@ class UpdateRoomRequest extends FormRequest
         $roomId = $this->route('room') ?? $this->route('id');
 
         return [
+            'title' => ['required', 'string', 'max:255'],
             'number' => [
                 'required',
                 'string',

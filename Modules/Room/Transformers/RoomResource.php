@@ -11,6 +11,7 @@ class RoomResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'title' => $this->title,
             'number' => $this->number,
             'type' => $this->type,
             'price' => $this->price,
