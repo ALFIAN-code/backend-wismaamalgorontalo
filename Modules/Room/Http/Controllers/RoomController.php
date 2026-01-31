@@ -30,7 +30,7 @@ class RoomController extends Controller
     {
         $room = Room::create($request->validated());
 
-        return $this->apiSuccess($room, 'Kamar berhasil ditambahkan', 201);
+        return $this->apiSuccess(new RoomResource($room), 'Kamar berhasil ditambahkan', 201);
     }
 
     // menampilkan data detail satu kamar
@@ -54,7 +54,7 @@ class RoomController extends Controller
 
         $room->update($request->validated());
 
-        return $this->apiSuccess($room, 'Data kamar berhasil diperbarui');
+        return $this->apiSuccess(new RoomResource($room), 'Data kamar berhasil diperbarui');
     }
 
     // menghapus data kamar
@@ -107,14 +107,14 @@ class RoomController extends Controller
             $image->scaleDown(width: 1200); // Resize jika lebih lebar dari 1200px (tetap jaga rasio)
 
             // Simpan gambar utama ke storage
-            Storage::disk('public')->put($path, (string) $image->encodeByExtension(quality: 80));
+            Storage::disk('public')->put($path, (string) $image->encodeByExtension($file->getClientOriginalExtension(), quality: 80));
 
             // 3. Proses Thumbnail (Resize ke max 400px)
             $thumb = $manager->read($file);
             $thumb->cover(400, 300); // Crop & Resize pas 400x300
 
             // Simpan thumbnail ke storage
-            Storage::disk('public')->put($thumbPath, (string) $thumb->encodeByExtension(quality: 70));
+            Storage::disk('public')->put($thumbPath, (string) $thumb->encodeByExtension($file->getClientOriginalExtension(), quality: 70));
 
             // 4. Simpan ke database
             $roomImage = $room->images()->create([
