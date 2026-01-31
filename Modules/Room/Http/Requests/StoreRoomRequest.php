@@ -18,7 +18,6 @@ class StoreRoomRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'number' => ['required', 'string', 'unique:rooms,number'],
-            'type' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'status' => ['required', Rule::enum(RoomStatus::class)],
             'description' => ['nullable', 'string'],

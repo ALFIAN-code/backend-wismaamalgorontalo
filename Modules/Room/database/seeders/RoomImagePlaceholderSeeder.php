@@ -40,7 +40,7 @@ class RoomImagePlaceholderSeeder extends Seeder
                 }
 
                 // Generate Main Image
-                $this->generatePlaceholder($path, $room->number, $room->type, 800, 600);
+                $this->generatePlaceholder($path, $room->number, "Image", 800, 600);
 
                 // Generate Thumbnail
                 $this->generatePlaceholder($thumbPath, $room->number, "Thumb", 400, 300);

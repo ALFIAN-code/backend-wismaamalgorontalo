@@ -93,7 +93,8 @@ class RoomController extends Controller
 
         foreach ($request->file('images') as $index => $file) {
             // 1. Generate Nama File Unik
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $extension = $file->extension() ?: $file->getClientOriginalExtension() ?: 'jpg';
+            $filename = time() . '_' . uniqid() . '.' . $extension;
             $path = 'rooms/' . $filename;
             $thumbPath = 'rooms/thumbs/' . $filename;
 
@@ -107,14 +108,14 @@ class RoomController extends Controller
             $image->scaleDown(width: 1200); // Resize jika lebih lebar dari 1200px (tetap jaga rasio)
 
             // Simpan gambar utama ke storage
-            Storage::disk('public')->put($path, (string) $image->encodeByExtension($file->getClientOriginalExtension(), quality: 80));
+            Storage::disk('public')->put($path, (string) $image->encodeByExtension($extension, quality: 80));
 
             // 3. Proses Thumbnail (Resize ke max 400px)
             $thumb = $manager->read($file);
             $thumb->cover(400, 300); // Crop & Resize pas 400x300
 
             // Simpan thumbnail ke storage
-            Storage::disk('public')->put($thumbPath, (string) $thumb->encodeByExtension($file->getClientOriginalExtension(), quality: 70));
+            Storage::disk('public')->put($thumbPath, (string) $thumb->encodeByExtension($extension, quality: 70));
 
             // 4. Simpan ke database
             $roomImage = $room->images()->create([
