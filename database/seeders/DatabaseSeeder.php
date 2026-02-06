@@ -3,14 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Room\Database\Seeders\RoomDatabaseSeeder;
+use Modules\Auth\database\seeders\AuthDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RolesAndPermissionsSeeder::class);
-        $this->call(UserSeeder::class);
-        $this->call(DummyDataSeeder::class);
+        $this->call([
+            AuthDatabaseSeeder::class,
+        ]);
     }
 }
