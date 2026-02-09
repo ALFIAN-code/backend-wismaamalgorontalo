@@ -13,6 +13,7 @@ class PermissionSeeder extends Seeder
 
         $permissions = [
             // sidebar dahsboard utama
+            ['name' => 'access-admin-panel', 'target' => 'admin', 'description' => 'Akses dashboard admin'],
             ['name' => 'view-dashboard', 'target' => 'admin', 'description' => 'Melihat dashboard utama'],
 
             // crud permission
@@ -39,6 +40,9 @@ class PermissionSeeder extends Seeder
             // Lease Management
             ['name' => 'view-lease', 'target' => 'admin', 'description' => 'Melihat daftar penyewaan'],
             ['name' => 'approve-lease', 'target' => 'admin', 'description' => 'Menyetujui atau menolak penyewaan'],
+
+            // Area khusus penhuni (untuk dipancing menunya)
+            ['name' => 'access-resident-area', 'target' => 'resident', 'description' => 'Akses area khusus penghuni'],
         ];
 
         foreach ($permissions as $permission) {

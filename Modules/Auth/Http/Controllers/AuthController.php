@@ -84,10 +84,12 @@ class AuthController extends Controller
     public function myPermissions()
     {
         /** @var \App\Models\User $user */
-        $user = Auth::user();
+        $user = Auth::guard('sanctum')->user();
 
         if (!$user) {
-            return $this->apiSuccess(['view-room'], 'Guest permissions retrieved successfully');
+            $guestRole = \Spatie\Permission\Models\Role::where('name', 'guest')->where('guard_name', 'api')->first();
+            $permissions = $guestRole ? $guestRole->permissions->pluck('name') : ['view-room'];
+            return $this->apiSuccess($permissions, 'Guest permissions retrieved successfully');
         }
 
         $permissions = $user->getAllPermissions()->pluck('name');
