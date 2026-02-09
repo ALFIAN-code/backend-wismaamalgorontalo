@@ -13,8 +13,16 @@ class PermissionSeeder extends Seeder
 
         $permissions = [
             // access redirect logic
-            ['name' => 'access-admin-panel', 'target' => 'admin', 'description' => 'Akses ke panel admin'],
-            ['name' => 'access-resident-area', 'target' => 'user', 'description' => 'Akses ke area penghuni'],
+            [
+                'name' => 'access-admin-panel',
+                'target' => 'admin',
+                'description' => 'Akses ke panel admin'
+            ],
+            [
+                'name' => 'access-resident-area',
+                'target' => 'user',
+                'description' => 'Akses ke area penghuni'
+            ],
 
             // sidebar dahsboard utama
             ['name' => 'view-dashboard', 'target' => 'admin', 'description' => 'Melihat dashboard utama'],
@@ -25,6 +33,33 @@ class PermissionSeeder extends Seeder
             ['name' => 'create-permission', 'target' => 'admin', 'description' => 'Membuat permission baru'],
             ['name' => 'update-permission', 'target' => 'admin', 'description' => 'Mengubah data permission'],
             ['name' => 'delete-permission', 'target' => 'admin', 'description' => 'Menghapus permission'],
+
+            // crud roles
+            [
+                'name' => 'access-role-management',
+                'target' => 'Admin',
+                'description' => 'Memberikan akses untuk melihat menu Role di Dashboard'
+            ],
+            [
+                'name' => 'view-roles',
+                'target' => 'Admin',
+                'description' => 'Melihat daftar role'
+            ],
+            [
+                'name' => 'create-roles',
+                'target' => 'Admin',
+                'description' => 'Menambah role baru'
+            ],
+            [
+                'name' => 'update-roles',
+                'target' => 'Admin',
+                'description' => 'Mengubah data role'
+            ],
+            [
+                'name' => 'delete-roles',
+                'target' => 'Admin',
+                'description' => 'Menghapus role'
+            ],
 
             // crud user
             ['name' => 'access-user-management', 'target' => 'admin', 'description' => 'Akses manajemen user'],
