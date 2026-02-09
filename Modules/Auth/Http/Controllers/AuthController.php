@@ -86,6 +86,10 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        if (!$user) {
+            return $this->apiSuccess(['view-room'], 'Guest permissions retrieved successfully');
+        }
+
         $permissions = $user->getAllPermissions()->pluck('name');
 
         return $this->apiSuccess($permissions, 'User permissions retrieved successfully');

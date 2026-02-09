@@ -12,10 +12,6 @@ class PermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            // access redirect logic
-            ['name' => 'access-admin-panel', 'target' => 'admin', 'description' => 'Akses ke panel admin'],
-            ['name' => 'access-resident-area', 'target' => 'user', 'description' => 'Akses ke area penghuni'],
-
             // sidebar dahsboard utama
             ['name' => 'view-dashboard', 'target' => 'admin', 'description' => 'Melihat dashboard utama'],
 
