@@ -99,13 +99,11 @@ class RolePermissionSeeder extends Seeder
         ];
 
         $residentPermissions = [
-            'access-resident-area',
             'view-room',
             'view-lease',
         ];
 
         $memberPermissions = [
-            'access-resident-area',
             'view-room',
         ];
 

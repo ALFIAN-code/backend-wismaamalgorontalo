@@ -12,19 +12,8 @@ class PermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
-            // access redirect logic
-            [
-                'name' => 'access-admin-panel',
-                'target' => 'admin',
-                'description' => 'Akses ke panel admin'
-            ],
-            [
-                'name' => 'access-resident-area',
-                'target' => 'user',
-                'description' => 'Akses ke area penghuni'
-            ],
-
             // sidebar dahsboard utama
+            ['name' => 'access-admin-panel', 'target' => 'admin', 'description' => 'Akses dashboard admin'],
             ['name' => 'view-dashboard', 'target' => 'admin', 'description' => 'Melihat dashboard utama'],
 
             // crud permission
@@ -81,6 +70,8 @@ class PermissionSeeder extends Seeder
 
             // Permission khusus untuk role Resident (tidak boleh diassign ke role lain)
             ['name' => 'pay_lease_bill', 'target' => 'resident', 'description' => 'Izin untuk membayar tagihan sewa'],
+            // Area khusus penhuni (untuk dipancing menunya)
+            ['name' => 'access-resident-area', 'target' => 'resident', 'description' => 'Akses area khusus penghuni'],
         ];
 
         foreach ($permissions as $permission) {
