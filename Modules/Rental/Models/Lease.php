@@ -2,11 +2,12 @@
 
 namespace Modules\Resident\Models;
 
-use App\Models\User;
-use Modules\Room\Models\Room;
-use Illuminate\Database\Eloquent\Model;
-use Modules\Resident\Enums\LeaseStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Modules\Auth\Models\User;
+use Modules\Rental\Enums\LeaseStatus;
+use Modules\Resident\Models\Resident;
+use Modules\Room\Models\Room;
 
 class Lease extends Model
 {

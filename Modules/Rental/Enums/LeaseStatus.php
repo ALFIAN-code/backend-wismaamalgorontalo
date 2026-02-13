@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Resident\Enums;
+namespace Modules\Rental\Enums;
 
 enum LeaseStatus: string
 {
