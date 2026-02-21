@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
+use Modules\Auth\Models\User;
 use Modules\Resident\Models\Lease;
 use Modules\Resident\Models\Resident;
 use Modules\Room\Models\Room;
@@ -436,7 +436,7 @@ class DummyDataSeeder extends Seeder
             // Last resort: simple blank file if GD is totally broken
             \file_put_contents($path, "");
         }
-        
+
         \imagedestroy($img);
     }
 }
