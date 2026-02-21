@@ -6,14 +6,14 @@ import { fileURLToPath } from 'url';
 
 export default defineConfig({
     build: {
-        outDir: '../../public/build-iventory',
+        outDir: '../../public/build-inventory',
         emptyOutDir: true,
         manifest: true,
     },
     plugins: [
         laravel({
             publicDirectory: '../../public',
-            buildDirectory: 'build-iventory',
+            buildDirectory: 'build-inventory',
             input: [
                 __dirname + '/resources/assets/sass/app.scss',
                 __dirname + '/resources/assets/js/app.js'
@@ -32,7 +32,7 @@ export default defineConfig({
 //            const filePath = join(currentPath, file);
 //            const stats = statSync(filePath);
 //            if (stats.isFile() && !file.startsWith('.')) {
-//                const relativePath = 'Modules/Iventory/'+relative(__dirname, filePath);
+//                const relativePath = 'Modules/Inventory/'+relative(__dirname, filePath);
 //                filePaths.push(relativePath);
 //            } else if (stats.isDirectory()) {
 //                walkDirectory(filePath);
@@ -52,6 +52,6 @@ export default defineConfig({
 
 
 //export const paths = [
-//    'Modules/Iventory/resources/assets/sass/app.scss',
-//    'Modules/Iventory/resources/assets/js/app.js',
+//    'Modules/Inventory/resources/assets/sass/app.scss',
+//    'Modules/Inventory/resources/assets/js/app.js',
 //];

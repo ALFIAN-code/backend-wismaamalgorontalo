@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Iventory\Providers;
+namespace Modules\Inventory\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    protected string $name = 'Iventory';
+    protected string $name = 'Inventory';
 
     /**
      * Called before routes are registered.

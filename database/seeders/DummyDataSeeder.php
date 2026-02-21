@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Modules\Auth\Models\User;
-use Modules\Resident\Models\Lease;
+use Modules\Rental\Models\Lease;
 use Modules\Resident\Models\Resident;
 use Modules\Room\Models\Room;
 use Modules\Room\Models\RoomImage;

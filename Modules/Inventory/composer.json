@@ -1,5 +1,5 @@
 {
-    "name": "nwidart/iventory",
+    "name": "nwidart/inventory",
     "description": "",
     "authors": [
         {
@@ -17,14 +17,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Iventory\\": "",
-            "Modules\\Iventory\\Database\\Factories\\": "database/factories/",
-            "Modules\\Iventory\\Database\\Seeders\\": "database/seeders/"
+            "Modules\\Inventory\\": "",
+            "Modules\\Inventory\\Database\\Factories\\": "database/factories/",
+            "Modules\\Inventory\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modules\\Iventory\\Tests\\": "tests/"
+            "Modules\\Inventory\\Tests\\": "tests/"
         }
     }
 }

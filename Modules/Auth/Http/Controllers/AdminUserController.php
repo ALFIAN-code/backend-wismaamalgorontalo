@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Resident\Http\Controllers;
+namespace Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Modules\Auth\Http\Requests\StoreUserRequest;
+use Modules\Auth\Http\Requests\UpdateUserRequest;
 use Modules\Auth\Models\User;
-use Modules\Resident\Http\Requests\StoreUserRequest;
-use Modules\Resident\Http\Requests\UpdateUserRequest;
 use Spatie\Permission\Models\Role;
 
 class AdminUserController extends Controller

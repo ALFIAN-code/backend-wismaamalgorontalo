@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Iventory\Http\Controllers;
+namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class IventoryController extends Controller
+class InventoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('iventory::index');
+        return view('inventory::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class IventoryController extends Controller
      */
     public function create()
     {
-        return view('iventory::create');
+        return view('inventory::create');
     }
 
     /**
@@ -33,7 +33,7 @@ class IventoryController extends Controller
      */
     public function show($id)
     {
-        return view('iventory::show');
+        return view('inventory::show');
     }
 
     /**
@@ -41,7 +41,7 @@ class IventoryController extends Controller
      */
     public function edit($id)
     {
-        return view('iventory::edit');
+        return view('inventory::edit');
     }
 
     /**

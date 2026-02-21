@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Iventory\Providers;
+namespace Modules\Inventory\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -8,13 +8,13 @@ use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
-class IventoryServiceProvider extends ServiceProvider
+class InventoryServiceProvider extends ServiceProvider
 {
     use PathNamespace;
 
-    protected string $name = 'Iventory';
+    protected string $name = 'Inventory';
 
-    protected string $nameLower = 'iventory';
+    protected string $nameLower = 'inventory';
 
     /**
      * Boot the application events.

@@ -4,5 +4,6 @@
     "Finance": true,
     "Maintenance": true,
     "Auth": true,
-    "Iventory": true
+    "Iventory": true,
+    "Inventory": true
 }
