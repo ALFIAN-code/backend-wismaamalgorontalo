@@ -17,7 +17,6 @@ class LeaseController extends Controller
     public function __construct(LeaseService $leaseService)
     {
         $this->leaseService = $leaseService;
-        // Middleware auth sudah di route group, tapi bisa dipertegas di sini
     }
 
     public function store(StoreLeaseRequest $request)
