@@ -1,12 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Auth\Http\Controllers\AdminPermissionController;
+use Modules\Auth\Http\Controllers\PermissionController;
 use Modules\Auth\Http\Controllers\RoleController;
 use Modules\Auth\Http\Controllers\UserController;
 use Modules\Auth\Http\Controllers\AuthController;
-use Modules\Auth\Http\Controllers\PermissionController;
-use Modules\Auth\Models\Permission;
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {});
 
@@ -20,11 +18,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('admin')->group(function () {
         // route crud permission
-        Route::get('/permissions', [AdminPermissionController::class, 'index'])->middleware('permission:view-permission');
-        Route::post('/permissions', [AdminPermissionController::class, 'store'])->middleware('permission:create-permission');
-        Route::get('/permissions/{id}', [AdminPermissionController::class, 'show'])->middleware('permission:view-permission');
-        Route::put('/permissions/{id}', [AdminPermissionController::class, 'update'])->middleware('permission:update-permission');
-        Route::delete('/permissions/{id}', [AdminPermissionController::class, 'destroy'])->middleware('permission:delete-permission');
+        Route::get('/permissions', [PermissionController::class, 'index'])->middleware('permission:view-permission');
+        Route::post('/permissions', [PermissionController::class, 'store'])->middleware('permission:create-permission');
+        Route::get('/permissions/{id}', [PermissionController::class, 'show'])->middleware('permission:view-permission');
+        Route::put('/permissions/{id}', [PermissionController::class, 'update'])->middleware('permission:update-permission');
+        Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->middleware('permission:delete-permission');
 
         // route crud role
         Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:view-role');

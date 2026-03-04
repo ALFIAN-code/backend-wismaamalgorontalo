@@ -6,9 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
 {
-    public function authirize(): bool
+    public function authorize(): bool
     {
-        return $this->user()->can('create_users');
+        return $this->user()->can('create_user');
     }
 
     public function rules(): array
