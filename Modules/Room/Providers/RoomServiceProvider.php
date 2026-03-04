@@ -41,6 +41,11 @@ class RoomServiceProvider extends ServiceProvider
             \Modules\Room\Contracts\RoomAvailabilityService::class,
             \Modules\Room\Services\RoomService::class
         );
+
+        $this->app->bind(
+            \Modules\Room\Repositories\Contracts\RoomRepositoryInterface::class,
+            \Modules\Room\Repositories\RoomRepository::class
+        );
     }
 
     /**

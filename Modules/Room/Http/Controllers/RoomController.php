@@ -3,83 +3,77 @@
 namespace Modules\Room\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Modules\Room\Http\Requests\StoreRoomRequest;
 use Modules\Room\Http\Requests\UpdateRoomRequest;
-use Modules\Room\Services\RoomService;
 use Modules\Room\Models\Room;
-use Illuminate\Http\Request;
-use App\Traits\ApiResponse;
+use Modules\Room\Services\RoomService;
+use Modules\Room\Transformers\RoomResource;
 
 class RoomController extends Controller
 {
     use ApiResponse;
 
-    protected $roomService;
-
-    public function __construct(RoomService $roomService)
-    {
-        $this->roomService = $roomService;
-    }
+    public function __construct(
+        private readonly RoomService $roomService
+    ) {}
 
     public function index(Request $request)
     {
         $rooms = $this->roomService->getAllRooms($request->query());
-        return $this->apiSuccess($rooms, 'Data kamar berhasil diambil');
+        return $this->apiSuccess(
+            RoomResource::collection($rooms)->response()->getData(true),
+            'Data kamar berhasil diambil'
+        );
     }
 
     public function store(StoreRoomRequest $request)
     {
-        try {
-            $data = $request->validated();
-            $images = $request->file('images', []);
+        $room = $this->roomService->createRoom(
+            $request->validated(),
+            $request->file('images', [])
+        );
 
-            $room = $this->roomService->createRoom($data, $images);
-
-            return $this->apiSuccess($room, 'Kamar berhasil dibuat', 201);
-        } catch (\Exception $e) {
-            return $this->apiError($e->getMessage(), 500);
-        }
+        return $this->apiSuccess(new RoomResource($room), 'Kamar berhasil dibuat', 201);
     }
 
     public function show($id)
     {
-        $room = Room::with('images')->findOrFail($id);
-        return $this->apiSuccess($room, 'Detail kamar berhasil diambil');
+        $room = $this->roomService->getRoomDetails($id);
+        return $this->apiSuccess(new RoomResource($room), 'Detail kamar berhasil diambil');
     }
 
     public function update(UpdateRoomRequest $request, $id)
     {
-        try {
-            $room = Room::findOrFail($id);
-            $data = $request->validated();
-            $newImages = $request->file('images', []);
+        $updatedRoom = $this->roomService->updateRoom(
+            $id,
+            $request->validated(),
+            $request->file('images', [])
+        );
 
-            $updatedRoom = $this->roomService->updateRoom($room, $data, $newImages);
-
-            return $this->apiSuccess($updatedRoom, 'Kamar berhasil diupdate');
-        } catch (\Exception $e) {
-            return $this->apiError($e->getMessage(), 500);
-        }
+        return $this->apiSuccess(new RoomResource($updatedRoom), 'Kamar berhasil diupdate');
     }
 
     public function destroy($id)
     {
-        try {
-            $room = Room::findOrFail($id);
-            $this->roomService->deleteRoom($room);
-            return $this->apiSuccess(null, 'Kamar berhasil dihapus');
-        } catch (\Exception $e) {
-            return $this->apiError($e->getMessage(), 500);
-        }
+        $this->roomService->deleteRoom($id);
+        return $this->apiSuccess(null, 'Kamar berhasil dihapus');
     }
 
-    public function deleteImage($imageId)
+    public function uploadImages(Request $request, $id)
     {
-        try {
-            $this->roomService->deleteImage($imageId);
-            return $this->apiSuccess(null, 'Foto berhasil dihapus');
-        } catch (\Exception $e) {
-            return $this->apiError('Gagal menghapus foto', 500);
-        }
+        $request->validate(['images' => 'required|array', 'images.*' => 'image|max:5120']);
+        $room = $this->roomService->getRoomDetails($id);
+
+        $this->roomService->uploadImages($room, $request->file('images'));
+
+        return $this->apiSuccess(new RoomResource($room->refresh()), 'Foto berhasil ditambahkan');
+    }
+
+    public function deleteImage($roomId, $imageId)
+    {
+        $this->roomService->deleteImage($imageId);
+        return $this->apiSuccess(null, 'Foto berhasil dihapus');
     }
 }

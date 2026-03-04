@@ -2,72 +2,69 @@
 
 namespace Modules\Room\Services;
 
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Modules\Room\Contracts\RoomAvailabilityService;
+use Modules\Room\Enums\RoomStatus;
 use Modules\Room\Models\Room;
 use Modules\Room\Models\RoomImage;
-use Modules\Room\Enums\RoomStatus;
-use Modules\Room\Contracts\RoomAvailabilityService;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\UploadedFile;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Modules\Room\Repositories\Contracts\RoomRepositoryInterface;
 
 class RoomService implements RoomAvailabilityService
 {
+    public function __construct(
+        private readonly RoomRepositoryInterface $roomRepository
+    ) {}
+
     public function getAllRooms(array $filters = [])
     {
-        return Room::query()
-            ->when(isset($filters['search']), function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filters['search'] . '%');
-            })
-            ->when(isset($filters['status']), function ($q) use ($filters) {
-                $q->where('status', $filters['status']);
-            })
-            ->with(['images', 'activeLease'])
-            ->paginate(10);
+        return $this->roomRepository->getAllPaginated($filters);
+    }
+
+    public function getRoomDetails(int $id): Room
+    {
+        return $this->roomRepository->findById($id);
     }
 
     public function createRoom(array $data, array $images = []): Room
     {
         return DB::transaction(function () use ($data, $images) {
-            // 1. Create Room
-            $room = Room::create($data);
+            $room = $this->roomRepository->create($data);
 
-            // 2. Handle Images if exists
             if (!empty($images)) {
                 $this->uploadImages($room, $images);
             }
 
-            return $room;
+            return $room->load('images');
         });
     }
 
-    public function updateRoom(Room $room, array $data, array $newImages = []): Room
+    public function updateRoom(int $id, array $data, array $newImages = []): Room
     {
-        return DB::transaction(function () use ($room, $data, $newImages) {
-            $room->update($data);
+        return DB::transaction(function () use ($id, $data, $newImages) {
+            $room = $this->roomRepository->findById($id);
+            $room = $this->roomRepository->update($room, $data);
 
             if (!empty($newImages)) {
                 $this->uploadImages($room, $newImages);
             }
 
-            return $room;
+            return $room->load('images');
         });
     }
 
-    public function deleteRoom(Room $room): void
+    public function deleteRoom(int $id): void
     {
-        DB::transaction(function () use ($room) {
-            foreach ($room->images as $image) {
-                Storage::disk('public')->delete([$image->image_path, $image->thumbnail_path]);
-            }
-            $room->images()->delete();
-            $room->delete();
+        DB::transaction(function () use ($id) {
+            $room = $this->roomRepository->findById($id);
+            $this->roomRepository->delete($room);
         });
     }
 
-    private function uploadImages(Room $room, array $files): void
+    public function uploadImages(Room $room, array $files): void
     {
         $manager = new ImageManager(new Driver());
 
@@ -93,7 +90,7 @@ class RoomService implements RoomAvailabilityService
             $thumb->cover(300, 300);
             Storage::disk('public')->put($thumbPath, (string) $thumb->encode());
 
-            $room->images()->create([
+            $this->roomRepository->addImage($room, [
                 'image_path' => $path,
                 'thumbnail_path' => $thumbPath,
                 'order' => $index + 1
@@ -103,36 +100,35 @@ class RoomService implements RoomAvailabilityService
 
     public function deleteImage(int $imageId): void
     {
-        $image = RoomImage::findOrFail($imageId);
-        Storage::disk('public')->delete([$image->image_path, $image->thumbnail_path]);
-        $image->delete();
+        $image = $this->roomRepository->findImageById($imageId);
+        $this->roomRepository->deleteImage($image);
     }
 
     public function isAvailable(int $roomId): bool
     {
-        $room = Room::find($roomId);
+        $room = $this->roomRepository->findByid($roomId);
         return $room && $room->status === RoomStatus::AVAILABLE;
     }
 
     public function markAsOccupied(int $roomId): void
     {
-        $room = Room::findOrFail($roomId);
-        $room->update(['status' => RoomStatus::OCCUPIED]);
+        $room  = $this->roomRepository->findById($roomId);
+        $this->roomRepository->update($room, ['status' => RoomStatus::OCCUPIED]);
     }
 
     public function markAsAvailable(int $roomId): void
     {
-        $room = Room::findOrFail($roomId);
-        $room->update(['status' => RoomStatus::AVAILABLE]);
+        $room = $this->roomRepository->findById($roomId);
+        $this->roomRepository->update($room, ['status' => RoomStatus::AVAILABLE]);
     }
 
     public function getPrice(int $roomId): float
     {
-        return Room::findOrFail($roomId)->price;
+        return $this->roomRepository->findById($roomId)->price;
     }
 
     public function getName(int $roomId): string
     {
-        return Room::findOrFail($roomId)->name;
+        return $this->roomRepository->findById($roomId)->title ?? $this->roomRepository->findById($roomId)->number;
     }
 }
