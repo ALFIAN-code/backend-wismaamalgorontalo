@@ -3,14 +3,26 @@
 namespace Modules\Setting\database\seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Setting\Models\AppSetting;
 
 class SettingDatabaseSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // $this->call([]);
+        AppSetting::updateOrCreate(
+            ['key' => 'feature-midtrans-payment'],
+            [
+                'value' => 'false',
+                'description' => 'Aktifkan metode pembayaran otomatis via Midtrans'
+            ]
+        );
+
+        AppSetting::updateOrCreate(
+            ['key' => 'feature-daily-rental'],
+            [
+                'value' => 'false',
+                'description' => 'Aktifkan opsi penyewaan kamar harian (Hotel)'
+            ]
+        );
     }
 }

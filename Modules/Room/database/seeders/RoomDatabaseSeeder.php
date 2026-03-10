@@ -3,6 +3,8 @@
 namespace Modules\Room\database\seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Room\Models\Room;
+use Modules\Room\Models\RoomImage;
 
 class RoomDatabaseSeeder extends Seeder
 {
@@ -90,11 +92,10 @@ class RoomDatabaseSeeder extends Seeder
             $imagesCount = $roomData['images_count'];
             unset($roomData['images_count']);
 
-            $room = \Modules\Room\Models\Room::create($roomData);
+            $room = Room::create($roomData);
 
-            // Buat dummy images untuk setiap room
             for ($i = 0; $i < $imagesCount; $i++) {
-                \Modules\Room\Models\RoomImage::create([
+                RoomImage::create([
                     'room_id' => $room->id,
                     'image_path' => 'rooms/dummy-room-' . $room->number . '-' . ($i + 1) . '.jpg',
                     'order' => $i,
@@ -102,6 +103,6 @@ class RoomDatabaseSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Berhasil membuat ' . count($rooms) . ' data room dengan facilities dan images!');
+        $this->command->info('Berhasil membuat ' . count($rooms) . ' data room dengan facilities dan images!');
     }
 }

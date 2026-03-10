@@ -6,5 +6,6 @@
     "Auth": true,
     "Iventory": true,
     "Inventory": true,
-    "Setting": true
+    "Setting": true,
+    "Rental": true
 }
