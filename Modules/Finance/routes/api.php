@@ -4,12 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Modules\Finance\Http\Controllers\DashboardController;
 use Modules\Finance\Http\Controllers\PaymentController;
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/invoice/{invoiceId}/pay', [PaymentController::class, 'pay']);
-    Route::post('/payment/{paymentId}/verifiy', [PaymentController::class, 'verifiy']);
+Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('dashboard')->middleware('permission:finance-dashboard-view')->group(function () {
+        Route::get('/kpi-summary', [DashboardController::class, 'kpiSummary']);
+        Route::get('/revenue-chart', [DashboardController::class, 'revenueChart']);
+        Route::get('/due-invoices', [DashboardController::class, 'dueInvoices']);
+        Route::get('/pending-payments', [DashboardController::class, 'pendingPayments']);
+    });
 
-    Route::get('/dashboard/kpi-summary', [DashboardController::class, 'kpiSummary']);
-    Route::get('/dashboard/revenue-chart', [DashboardController::class, 'revenueChart']);
-    Route::get('/dashboard/due-invoices', [DashboardController::class, 'dueInvoices']);
-    Route::get('/dashboard/pending-payment', [DashboardController::class, 'pendingPayments']);
+    Route::post('/payments/{paymentId}/verify', [PaymentController::class, 'verify'])
+        ->middleware('permission:finance-payment-verify');
+
+    Route::post('/invoices/{invoiceId}/pay', [PaymentController::class, 'pay'])
+        ->middleware('permission:finance-invoice-create');
 });

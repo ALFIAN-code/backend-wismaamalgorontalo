@@ -72,6 +72,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'pay_lease_bill', 'target' => 'resident', 'description' => 'Izin untuk membayar tagihan sewa'],
             // Area khusus penhuni (untuk dipancing menunya)
             ['name' => 'access-resident-area', 'target' => 'resident', 'description' => 'Akses area khusus penghuni'],
+
+            // Finance managemet
+            ['name' => 'finance-management-access', 'target' => 'admin', 'description' => 'Akses manajemen keuangan'],
+            ['name' => 'finance-dashboard-view', 'target' => 'admin', 'description' => 'Untuk melihat dashboard module finance'],
+            ['name' => 'finance-payment-verify', 'target' => 'admin', 'description' => 'Untuk memverifikasi pembayaran yang dilakukan secara manual'],
+            ['name' => 'finance-invoice-create', 'target' => 'user', 'description' => 'Untuk pengguna membuat invoice pembayaran baru'],
         ];
 
         foreach ($permissions as $permission) {
@@ -79,7 +85,7 @@ class PermissionSeeder extends Seeder
                 ['name' => $permission['name'], 'guard_name' => 'api'],
                 [
                     'target' => $permission['target'],
-                    'description' => $permission['description']
+                    'description' => $permission['description'],
                 ]
             );
         }
