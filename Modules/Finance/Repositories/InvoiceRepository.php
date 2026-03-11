@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Repositories;
 
+use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
 
@@ -21,5 +22,39 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     public function create(array $data): Invoice
     {
         return Invoice::create($data);
+    }
+
+    public function getTotalRevenueThisMonth(): float
+    {
+        return Invoice::where('status', InvoiceStatus::PAID->value)
+            ->where('updated_at', now()->month())
+            ->where('updated_at', now()->year)
+            ->sum('amount');
+    }
+
+    public function getTotalUnpaid(): float
+    {
+        return Invoice::where('status', InvoiceStatus::UNPAID->value)->sum('amount');
+    }
+
+    public function getMonthlyRevenue(int $months = 6): array
+    {
+        $revenueData = [];
+
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+
+            $total = Invoice::where('status', InvoiceStatus::PAID->value)
+                ->whereMonth('updated_at', $date->month)
+                ->whereYear('updated_at', $date->year)
+                ->sum('amount');
+
+            $revenueData[] = [
+                'month' => $date->translatedFormat('M Y'),
+                'total' => (float) $total
+            ];
+        }
+
+        return $revenueData;
     }
 }
