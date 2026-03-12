@@ -96,15 +96,22 @@ class RolePermissionSeeder extends Seeder
             // sewa menyewa
             'view-lease',
             'approve-lease',
+
+            // finance management
+            'finance-management-access',
+            'finance-dashboard-view',
+            'finance-payment-verify',
         ];
 
         $residentPermissions = [
             'view-room',
             'view-lease',
+            'finance-invoice-create'
         ];
 
         $memberPermissions = [
             'view-room',
+            'finance-invoice-create',
         ];
 
         $superAdmin->syncPermissions($superAdminPermissions);
