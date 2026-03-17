@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('invoice_id')->constrained('invoices')->cascadeOnDelete();
 
             $table->string('payment_method')->default('manual');
-            $table->string('paymnet_proof_path')->nullable();
+            $table->string('payment_proof_path')->nullable();
             $table->string('transaction_id')->nullable();
             $table->string('status')->default('pending');
             $table->text('admin_notes')->nullable()->comment('Alasan jika pembayaran ditolak');

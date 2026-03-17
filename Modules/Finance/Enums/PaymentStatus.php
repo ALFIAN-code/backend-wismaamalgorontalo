@@ -4,7 +4,7 @@ namespace Modules\Finance\Enums;
 
 enum PaymentStatus: string
 {
-    case PENDING = 'penfing';
+    case PENDING = 'pending';
     case VERIFIED = 'verified';
     case REJECTED = 'rejected';
 }
