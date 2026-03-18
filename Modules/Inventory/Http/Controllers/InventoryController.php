@@ -3,54 +3,35 @@
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Traits\ApiResponse;
+use Modules\Inventory\Http\Requests\StoreInventoryRequest;
+use Modules\Inventory\Repositories\Contracts\InventoryRepositoryInterface;
+use Modules\Inventory\Services\InventoryService;
+use Modules\Inventory\Transformers\InventoryResource;
 
 class InventoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use ApiResponse;
+
+    public function __construct(
+        private readonly InventoryService $inventoryService,
+        private readonly InventoryRepositoryInterface $inventoryRepository
+    ) {}
+
     public function index()
     {
-        return view('inventory::index');
+        $inventories = $this->inventoryRepository->getAll();
+        return $this->apiSuccess(InventoryResource::collection($inventories), 'Data inventory berhasil diambil');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreInventoryRequest $request)
     {
-        return view('inventory::create');
+        $inventory = $this->inventoryService->createInventory($request->validated());
+
+        return $this->apiSuccess(
+            new InventoryResource($inventory),
+            'Barang berhasil ditambahkan',
+            201
+        );
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('inventory::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('inventory::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }
