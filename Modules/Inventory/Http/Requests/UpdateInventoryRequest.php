@@ -16,6 +16,7 @@ class UpdateInventoryRequest extends FormRequest
             'quantitiy' => ['sometimes', 'required', 'integer', 'min:1'],
             'condition' => ['sometimes', 'required'],
             new Enum(ItemCondition::class),
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

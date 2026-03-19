@@ -9,4 +9,7 @@ interface ExpenseRepositoryInterface
 {
     public function create(array $data): Expense;
     public function getPaginated(int $perPage = 15): LengthAwarePaginator;
+    public function findByReference(int $refId, string $refType): ?Expense;
+    public function update(Expense $expense, array $data): Expense;
+    public function delete(Expense $expense): bool;
 }

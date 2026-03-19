@@ -34,11 +34,30 @@ class InventoryService
 
     public function updateInventory(Inventory $inventory, array $data): Inventory
     {
-        return $this->inventoryRepository->update($inventory, $data);
+        return DB::transaction(function () use ($inventory, $data) {
+            $updatedInventory = $this->inventoryRepository->update($inventory, $data);
+
+            if (array_key_exists('purchase_price', $data)) {
+                $this->financeService->syncExpenseByReference(
+                    $inventory->id,
+                    Inventory::class,
+                    [
+                        'title' => "Revisi Pembelian: {$updatedInventory->name}",
+                        'amount' => $data['purchase_price']
+                    ]
+                );
+            }
+
+            return $updatedInventory;
+        });
     }
 
     public function deleteInventory(Inventory $inventory): bool
     {
-        return $this->inventoryRepository->delete($inventory);
+        return DB::transaction(function () use ($inventory) {
+            $this->financeService->removeExpenseByReference($inventory->id, Inventory::class);
+
+            return $this->inventoryRepository->delete($inventory);
+        });
     }
 }

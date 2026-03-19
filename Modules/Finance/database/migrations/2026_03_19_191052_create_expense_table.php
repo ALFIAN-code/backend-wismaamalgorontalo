@@ -16,6 +16,9 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->date('expense_date');
 
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->string('reference_type')->nullable();
+
             $table->timestamps();
         });
     }

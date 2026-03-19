@@ -17,4 +17,22 @@ class ExpenseRepository implements ExpenseRepositoryInterface
     {
         return Expense::latest('expense_date')->paginate($perPage);
     }
+
+    public function findByReference(int $refId, string $refType): ?Expense
+    {
+        return Expense::where('reference_id', $refId)
+            ->where('reference_type', $refType)
+            ->first();
+    }
+
+    public function update(Expense $expense, array $data): Expense
+    {
+        $expense->update($data);
+        return $expense;
+    }
+
+    public function delete(Expense $expense): bool
+    {
+        return $expense->delete();
+    }
 }

@@ -90,4 +90,33 @@ class FinanceService
     {
         return $this->expenseRepository->getPaginated($perPage);
     }
+
+    public function syncExpenseByReference(int $refId, string $refType, array $data)
+    {
+        $expense = $this->expenseRepository->findByReference($refId, $refType);
+
+        if ($expense) {
+            if (empty($data['amount']) || $data['amount'] <= 0) {
+                return $this->expenseRepository->delete($expense);
+            }
+            return $this->expenseRepository->update($expense, $data);
+        } else {
+            if (!empty($data['amount']) && $data['amount'] > 0) {
+                $data['reference_id'] = $refId;
+                $data['reference_type'] = $refType;
+                return $this->recordExpense($data);
+            }
+        }
+
+        return null;
+    }
+
+    public function removeExpenseByReference(int $refId, string $refType): bool
+    {
+        $expense = $this->expenseRepository->findByReference($refId, $refType);
+        if ($expense) {
+            return $this->expenseRepository->delete($expense);
+        }
+        return false;
+    }
 }
