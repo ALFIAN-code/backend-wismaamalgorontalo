@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Modules\Finance\Http\Requests\StoreExpenseRequest;
+use Modules\Finance\Http\Requests\UpdateExpenseRequest;
 use Modules\Finance\Repositories\ExpenseRepository;
 use Modules\Finance\Services\FinanceService;
 use Modules\Finance\Transformers\ExpenseResource;
@@ -54,7 +55,7 @@ class ExpenseController extends Controller
         return $this->apiSuccess(new ExpenseResource($expense), 'Detail pengeluaran berhasil diambil');
     }
 
-    public function update(StoreExpenseRequest $request, int $id) // Menggunakan request yg sama
+    public function update(UpdateExpenseRequest $request, int $id)
     {
         $expense = $this->expenseRepository->findById($id);
 
