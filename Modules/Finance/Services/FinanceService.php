@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use ManualPaymentStrategy;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\PaymentStatus;
+use Modules\Finance\Models\Expense;
 use Modules\Finance\Models\Payment;
 use Modules\Finance\Repositories\Contracts\ExpenseRepositoryInterface;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
@@ -118,5 +119,31 @@ class FinanceService
             return $this->expenseRepository->delete($expense);
         }
         return false;
+    }
+
+    public function createManualExpense(array $data): Expense
+    {
+        $data['reference_id'] = null;
+        $data['reference_type'] = null;
+
+        return $this->expenseRepository->create($data);
+    }
+
+    public function updateManualExpense(Expense $expense, array $data): Expense
+    {
+        if ($expense->reference_type !== null) {
+            throw new HttpException(403, 'Pengeluaran ini terintegrasi dengan modul lain (Inventory). Silakan edit dari data barang terkait.');
+        }
+
+        return $this->expenseRepository->update($expense, $data);
+    }
+
+    public function deleteManualExpense(Expense $expense): bool
+    {
+        if ($expense->reference_type !== null) {
+            throw new HttpException(403, 'Pengeluaran ini terintegrasi dengan modul lain (Inventory). Silakan hapus barang terkait jika ingin membatalkan pengeluaran.');
+        }
+
+        return $this->expenseRepository->delete($expense);
     }
 }
