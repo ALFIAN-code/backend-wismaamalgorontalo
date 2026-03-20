@@ -4,7 +4,7 @@ namespace Modules\Finance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Modules\Finance\Http\Requests\PayInvoiceRequest;
 use Modules\Finance\Http\Requests\VerifyPaymentRequest;
 use Modules\Finance\Services\FinanceService;
@@ -18,7 +18,7 @@ class PaymentController extends Controller
         private readonly FinanceService $financeService
     ) {}
 
-    public function pay(PayInvoiceRequest $request, int $invoiceId)
+    public function pay(PayInvoiceRequest $request, int $invoiceId): JsonResponse
     {
         $payment = $this->financeService->processPayment($invoiceId, $request->validated());
 
@@ -29,16 +29,16 @@ class PaymentController extends Controller
         );
     }
 
-    public function verify(VerifyPaymentRequest $request, int $paymentId)
+    public function verify(VerifyPaymentRequest $request, int $paymentId): JsonResponse
     {
         $payment = $this->financeService->verifyPayment(
             $paymentId,
-            $request->validated('is_approved'),
-            $request->validated('admin_notes')
+            $request->boolean('is_approved'),
+            $request->input('admin_note'),
         );
 
-        $message = $request->validated('is_approved')
-            ? 'Pembayaran berhasil diverifikasi. Kamar otomatis terisi.'
+        $message = $request->boolean('is_approved')
+            ? 'Pembayaran berhasil diverifikasi.'
             : 'Pembayaran ditolak.';
 
         return $this->apiSuccess(new PaymentResource($payment), $message);

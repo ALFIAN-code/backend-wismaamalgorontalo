@@ -4,10 +4,9 @@ namespace Modules\Finance\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Finance\database\factories\InvoiceFactory;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Rental\Models\Lease;
-
-// use Modules\Finance\Database\Factories\InvoiceFactory;
 
 class Invoice extends Model
 {
@@ -34,5 +33,10 @@ class Invoice extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public static function newFactory()
+    {
+        return InvoiceFactory::new();
     }
 }

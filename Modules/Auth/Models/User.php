@@ -2,13 +2,13 @@
 
 namespace Modules\Auth\Models;
 
-use Laravel\Sanctum\HasApiTokens;
-use Modules\Resident\Models\Resident;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use Modules\Auth\Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Modules\Auth\database\factories\UserFactory;
+use Modules\Resident\Models\Resident;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {

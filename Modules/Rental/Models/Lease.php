@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\Models\User;
+use Modules\Rental\database\factories\LeaseFactory;
 use Modules\Rental\Enums\LeaseStatus;
 use Modules\Rental\Enums\RentalType;
 use Modules\Resident\Models\Resident;
@@ -45,5 +46,10 @@ class Lease extends Model
     public function room()
     {
         return $this->belongsTo(Room::class, 'room_id');
+    }
+
+    protected static function newFactory()
+    {
+        return LeaseFactory::new();
     }
 }

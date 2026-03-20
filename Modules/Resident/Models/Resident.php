@@ -2,9 +2,10 @@
 
 namespace Modules\Resident\Models;
 
-use Modules\Auth\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Modules\Auth\Models\User;
+use Modules\Resident\database\factories\ResidentFactory;
 
 class Resident extends Model
 {
@@ -15,5 +16,10 @@ class Resident extends Model
     public function user()
     {
         return  $this->belongsTo(User::class);
+    }
+
+    protected static function newFactory()
+    {
+        return ResidentFactory::new();
     }
 }

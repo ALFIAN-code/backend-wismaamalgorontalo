@@ -3,13 +3,16 @@
 namespace Modules\Finance\Services;
 
 use Carbon\Carbon;
-use ManualPaymentStrategy;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+use Modules\Finance\Contracts\PaymentStrategyInterface;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\PaymentStatus;
 use Modules\Finance\Models\Expense;
 use Modules\Finance\Models\Payment;
 use Modules\Finance\Repositories\Contracts\ExpenseRepositoryInterface;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
+use Modules\Finance\Strategies\ManualPaymentStrategy;
 use Modules\Finance\Strategies\MidtransPaymentStrategy;
 use Modules\Rental\Services\RentalService;
 use Modules\Setting\Services\SettingService;
@@ -26,19 +29,16 @@ class FinanceService
 
     public function processPayment(int $invoiceId, array $data): Payment
     {
-        $invoice = $this->invoiceRepository->findById($invoiceId);
+        return DB::transaction(function () use ($invoiceId, $data) {
+            $invoice = $this->invoiceRepository->findById($invoiceId);
 
-        if ($invoice->status === InvoiceStatus::PAID) {
-            throw new HttpException(422, 'Tagihan ini sudah lunas.');
-        }
+            if ($invoice->status === InvoiceStatus::PAID) {
+                throw new \DomainException('Tagihan ini sudah lunas.');
+            }
 
-        $strategy = match ($data['payment_method']) {
-            'midtrans' => $this->resolveMidtransStrategy(),
-            'manual' => app(ManualPaymentStrategy::class),
-            default => throw new HttpException(422, 'Metode pembayaran tidak didukung')
-        };
-
-        return $strategy->process($invoice, $data);
+            $strategy = $this->resolveStrategy($data['payment_method']);
+            return $strategy->process($invoice, $data);
+        });
     }
 
     public function generateInvoiceForLease(int $leaseId, float $amount, Carbon $dueDate)
@@ -56,20 +56,21 @@ class FinanceService
 
     public function verifyPayment(int $paymentId, bool $isApproved, ?string $adminNotes = null): Payment
     {
-        $payment = Payment::findOrFail($paymentId);
+        return DB::transaction(function () use ($paymentId, $isApproved, $adminNotes) {
+            $payment = Payment::findOrFail($paymentId);
 
-        $payment->update([
-            'status' => $isApproved ? PaymentStatus::VERIFIED->value : PaymentStatus::REJECTED->value,
-            'admin_notes' => $adminNotes,
-        ]);
+            $payment->update([
+                'status' => $isApproved ? PaymentStatus::VERIFIED : PaymentStatus::REJECTED,
+                'admin_notes' => $adminNotes,
+            ]);
 
-        if ($isApproved) {
-            $invoice = $this->invoiceRepository->findById($payment->invoice_id);
-            $this->invoiceRepository->updateStatus($invoice, InvoiceStatus::PAID->value);
-            $this->rentalService->activateLease($invoice->lease_id);
-        }
+            if ($isApproved) {
+                $this->invoiceRepository->updateStatus($payment->invoice, InvoiceStatus::PAID->value);
+                $this->rentalService->activateLease($payment->invoice->lease_id);
+            }
 
-        return $payment;
+            return $payment;
+        });
     }
 
     private function resolveMidtransStrategy(): MidtransPaymentStrategy
@@ -78,6 +79,15 @@ class FinanceService
             throw new HttpException(403, 'Mohon maaf, metode pembayaran saat ini sedang dinonaktifkan oleh admin');
         }
         return app(MidtransPaymentStrategy::class);
+    }
+
+    private function resolveStrategy(string $method): PaymentStrategyInterface
+    {
+        return match ($method) {
+            'manual'   => app(ManualPaymentStrategy::class),
+            'midtrans' => app(MidtransPaymentStrategy::class),
+            default    => throw new InvalidArgumentException('Metode tidak didukung'),
+        };
     }
 
     public function recordExpense(array $data)

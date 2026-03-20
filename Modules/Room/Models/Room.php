@@ -5,6 +5,7 @@ namespace Modules\Room\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Rental\Models\Lease;
+use Modules\Room\database\factories\RoomFactory;
 use Modules\Room\Enums\RoomStatus;
 
 class Room extends Model
@@ -31,5 +32,10 @@ class Room extends Model
     public function images()
     {
         return $this->hasMany(RoomImage::class)->orderBy('order');
+    }
+
+    protected static function newFactory()
+    {
+        return RoomFactory::new();
     }
 }
