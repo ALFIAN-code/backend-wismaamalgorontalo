@@ -16,7 +16,7 @@ class FinanceDashboardService
     {
         return [
             'total_revenue_this_month' => $this->invoiceRepository->getTotalRevenueThisMonth(),
-            'totoal_unpaid_invoices' => $this->invoiceRepository->getTotalUnpaid(),
+            'total_unpaid_invoices' => $this->invoiceRepository->getTotalUnpaid(),
             'pending_verification_count' => $this->paymentRepository->countPendingVerification(),
         ];
     }
@@ -25,8 +25,12 @@ class FinanceDashboardService
     {
         $rawData = $this->invoiceRepository->getMonthlyRevenue(6);
 
+        $labels = array_map(function ($item) {
+            return $item['date_instance']->translatedFormat('M Y');
+        }, $rawData);
+
         return [
-            'labels' => array_column($rawData, 'month'),
+            'labels' => $labels,
             'datasets' => [
                 [
                     'label' => 'Total Pendapatan',

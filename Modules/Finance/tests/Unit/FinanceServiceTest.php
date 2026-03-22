@@ -8,12 +8,15 @@ use Modules\Finance\Enums\PaymentStatus;
 use Modules\Finance\Models\Expense;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Models\Payment;
+use Modules\Finance\Services\ExpenseService;
 use Modules\Finance\Services\FinanceService;
 use Modules\Rental\Models\Lease;
+use Tests\TestCase;
+
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertDatabaseMissing;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 test('dapat memproses pembayaran manual dengan mengunggah bukti transfer', function () {
     Storage::fake('public');
@@ -70,7 +73,7 @@ test('admin dapat menolak pembayaran dengan alasan tertentu', function () {
 });
 
 test('dapat mencatat pengeluaran manual baru', function () {
-    $service = app(FinanceService::class);
+    $service = app(ExpenseService::class);
     $data = [
         'title' => 'Pembelian Alat Kebersihan',
         'amount' => 150000,
@@ -80,7 +83,7 @@ test('dapat mencatat pengeluaran manual baru', function () {
     $expense = $service->createManualExpense($data);
 
     expect($expense->title)->toBe('Pembelian Alat Kebersihan');
-    assertDatabaseHas('expense', ['amount' => 150000]);
+    assertDatabaseHas('expenses', ['amount' => 150000]);
 });
 
 test('tidak bisa menghapus pengeluaran yang terintegrasi (reference_type tidak null)', function () {
@@ -89,18 +92,18 @@ test('tidak bisa menghapus pengeluaran yang terintegrasi (reference_type tidak n
         'reference_id' => 99
     ]);
 
-    $service = app(FinanceService::class);
+    $service = app(ExpenseService::class);
 
     expect(fn() => $service->deleteManualExpense($expense))
-        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(DomainException::class);
 });
 
 test('dapat menghapus pengeluaran manual biasa', function () {
     $expense = Expense::factory()->create(['reference_type' => null]);
-    $service = app(FinanceService::class);
+    $service = app(ExpenseService::class);
 
     $result = $service->deleteManualExpense($expense);
 
     expect($result)->toBeTrue();
-    assertDatabaseMissing('expense', ['id' => $expense->id]);
+    assertDatabaseMissing('expenses', ['id' => $expense->id]);
 });

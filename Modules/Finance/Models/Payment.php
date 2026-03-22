@@ -20,7 +20,7 @@ class Payment extends Model
         'admin_notes',
     ];
 
-    protected $cast = [
+    protected $casts = [
         'status' => PaymentStatus::class,
     ];
 

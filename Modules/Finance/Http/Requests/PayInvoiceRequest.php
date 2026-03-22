@@ -3,6 +3,8 @@
 namespace Modules\Finance\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\Finance\Enums\PaymentMethod;
 
 class PayInvoiceRequest extends FormRequest
 {
@@ -14,7 +16,7 @@ class PayInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method' => 'required|in:manual,midtrans',
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'payment_proof' => 'required_if:payment_method,manual|image|max:5120',
         ];
     }

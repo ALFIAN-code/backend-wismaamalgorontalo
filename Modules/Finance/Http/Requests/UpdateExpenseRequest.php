@@ -12,7 +12,7 @@ class UpdateExpenseRequest extends FormRequest
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'amount' => ['sometimes', 'required', 'numeric', 'min:1'],
-            'expense_date' => ['sometiems', 'required', 'date'],
+            'expense_date' => ['sometimes', 'required', 'date'],
         ];
     }
 

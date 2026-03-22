@@ -13,4 +13,5 @@ interface ExpenseRepositoryInterface
     public function update(Expense $expense, array $data): Expense;
     public function delete(Expense $expense): bool;
     public function findById(int $id): ?Expense;
+    public function findOrFail(int $id): ?Expense;
 }

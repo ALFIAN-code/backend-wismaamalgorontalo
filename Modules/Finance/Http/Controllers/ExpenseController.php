@@ -4,11 +4,12 @@ namespace Modules\Finance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use DomainException;
 use Illuminate\Http\Request;
 use Modules\Finance\Http\Requests\StoreExpenseRequest;
 use Modules\Finance\Http\Requests\UpdateExpenseRequest;
 use Modules\Finance\Repositories\ExpenseRepository;
-use Modules\Finance\Services\FinanceService;
+use Modules\Finance\Services\ExpenseService;
 use Modules\Finance\Transformers\ExpenseResource;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -17,15 +18,16 @@ class ExpenseController extends Controller
     use ApiResponse;
 
     public function __construct(
-        private readonly FinanceService $financeService,
+        private readonly ExpenseService $expenseService,
         private readonly ExpenseRepository $expenseRepository
     ) {}
 
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 15);
+        $perPage = (int) $request->query('per_page', 15);
+        $perPage = $perPage > 50 ? 50 : $perPage;
 
-        $expenses = $this->financeService->getAllExpenses($perPage);
+        $expenses = $this->expenseService->getAllExpenses($perPage);
 
         return ExpenseResource::collection($expenses)->additional([
             'success' => true,
@@ -35,7 +37,7 @@ class ExpenseController extends Controller
 
     public function store(StoreExpenseRequest $request)
     {
-        $expense = $this->financeService->createManualExpense($request->validated());
+        $expense = $this->expenseService->createManualExpense($request->validated());
 
         return $this->apiSuccess(
             new ExpenseResource($expense),
@@ -46,38 +48,38 @@ class ExpenseController extends Controller
 
     public function show(int $id)
     {
-        $expense = $this->expenseRepository->findById($id);
-
-        if (!$expense) {
-            throw new NotFoundHttpException('Data pengeluaran tidak ditemukan');
-        }
+        $expense = $this->expenseRepository->findOrFail($id);
 
         return $this->apiSuccess(new ExpenseResource($expense), 'Detail pengeluaran berhasil diambil');
     }
 
     public function update(UpdateExpenseRequest $request, int $id)
     {
-        $expense = $this->expenseRepository->findById($id);
+        $expense = $this->expenseRepository->findOrFail($id);
 
-        if (!$expense) {
-            throw new NotFoundHttpException('Data pengeluaran tidak ditemukan');
+        try {
+            $updatedExpense = $this->expenseService->updateManualExpense($expense, $request->validated());
+            return $this->apiSuccess(new ExpenseResource($updatedExpense), 'Data pengeluaran berhasil diperbarui');
+        } catch (DomainException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 403);
         }
-
-        $updatedExpense = $this->financeService->updateManualExpense($expense, $request->validated());
-
-        return $this->apiSuccess(new ExpenseResource($updatedExpense), 'Data pengeluaran berhasil diperbarui');
     }
 
     public function destroy(int $id)
     {
-        $expense = $this->expenseRepository->findById($id);
+        $expense = $this->expenseRepository->findOrFail($id);
 
-        if (!$expense) {
-            throw new NotFoundHttpException('Data pengeluaran tidak ditemukan');
+        try {
+            $this->expenseService->deleteManualExpense($expense);
+            return $this->apiSuccess(null, 'Data pengeluaran berhasil dihapus');
+        } catch (DomainException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 403);
         }
-
-        $this->financeService->deleteManualExpense($expense);
-
-        return $this->apiSuccess(null, 'Data pengeluaran berhasil dihapus');
     }
 }

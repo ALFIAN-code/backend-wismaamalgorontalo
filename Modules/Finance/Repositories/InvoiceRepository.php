@@ -28,8 +28,8 @@ class InvoiceRepository implements InvoiceRepositoryInterface
     public function getTotalRevenueThisMonth(): float
     {
         return Invoice::where('status', InvoiceStatus::PAID->value)
-            ->where('updated_at', now()->month())
-            ->where('updated_at', now()->year)
+            ->whereMonth('updated_at', now()->month)
+            ->whereYear('updated_at', now()->year)
             ->sum('amount');
     }
 
@@ -51,7 +51,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
                 ->sum('amount');
 
             $revenueData[] = [
-                'month' => $date->translatedFormat('M Y'),
+                'date_instance' => clone $date,
                 'total' => (float) $total
             ];
         }

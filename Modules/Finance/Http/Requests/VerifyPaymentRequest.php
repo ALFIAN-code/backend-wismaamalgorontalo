@@ -11,7 +11,7 @@ class VerifyPaymentRequest extends FormRequest
     {
         return [
             'is_approved' => ['required', 'boolean'],
-            'admin_note' => ['nullable', 'string', 'max:500'],
+            'admin_notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 

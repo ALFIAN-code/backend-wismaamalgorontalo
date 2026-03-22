@@ -34,7 +34,7 @@ class PaymentController extends Controller
         $payment = $this->financeService->verifyPayment(
             $paymentId,
             $request->boolean('is_approved'),
-            $request->input('admin_note'),
+            $request->input('admin_notes'),
         );
 
         $message = $request->boolean('is_approved')

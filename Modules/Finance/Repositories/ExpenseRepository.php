@@ -40,4 +40,9 @@ class ExpenseRepository implements ExpenseRepositoryInterface
     {
         return Expense::find($id);
     }
+
+    public function findOrFail(int $id): ?Expense
+    {
+        return Expense::findOrFail($id);
+    }
 }

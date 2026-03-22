@@ -26,7 +26,4 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/invoices/{invoiceId}/pay', [PaymentController::class, 'pay'])
         ->middleware('permission:finance-invoice-create');
-
-    Route::get('/expenses', [ExpenseController::class, 'index'])
-        ->middleware('permission:finance-expense-view');
 });
