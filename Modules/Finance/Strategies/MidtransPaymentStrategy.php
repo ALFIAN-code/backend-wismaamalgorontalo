@@ -17,6 +17,7 @@ class MidtransPaymentStrategy implements PaymentStrategyInterface
         Config::$isProduction = config('finance.midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
+        Config::$overrideNotifUrl = 'https://api.wismaamalgorontalo.site/api/finance/payments/midtrans/notification';
     }
 
     public function process(Invoice $invoice, array $data): Payment
