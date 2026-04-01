@@ -47,12 +47,8 @@ class PaymentController extends Controller
 
     public function midtransNotification(Request $request)
     {
-        try {
-            $this->financeService->handleMidtransNotification($request->all());
-            return response()->json(['message' => 'Notifikasi berhasil diproses']);
-        } catch (\Exception $e) {
-            // Midtrans akan mencoba mengirim ulang jika kita merespon selain 200 OK
-            return response()->json(['message' => $e->getMessage()], 500);
-        }
+        $this->financeService->handleMidtransNotification($request->all());
+
+        return response()->json(['message' => 'Notifikasi diterima'], 200);
     }
 }

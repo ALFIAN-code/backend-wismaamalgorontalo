@@ -5,6 +5,7 @@ namespace Modules\Finance\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Log;
 use Modules\Finance\Contracts\PaymentStrategyInterface;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\PaymentStatus;
@@ -80,10 +81,14 @@ class FinanceService
 
     public function handleMidtransNotification(array $payload)
     {
+        if (!isset($payload['order_id']) || !isset($payload['signature_key'])) {
+            return;
+        }
+
         $orderId = $payload['order_id'];
         $statusCode = $payload['status_code'];
         $grossAmount = $payload['gross_amount'];
-        $serverKey = config('services.midtrans.server_key');
+        $serverKey = config('finance.midtrans.server_key');
 
         // 1. Verifikasi Signature Key (Wajib demi keamanan!)
         $signatureKey = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);

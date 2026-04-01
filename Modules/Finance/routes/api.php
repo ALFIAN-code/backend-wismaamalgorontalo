@@ -5,6 +5,9 @@ use Modules\Finance\Http\Controllers\DashboardController;
 use Modules\Finance\Http\Controllers\ExpenseController;
 use Modules\Finance\Http\Controllers\PaymentController;
 
+
+Route::post('/finance/payments/midtrans/notification', [PaymentController::class, 'midtransNotification']);
+
 Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
     Route::prefix('dashboard')->middleware('permission:finance-dashboard-view')->group(function () {
         Route::get('/kpi-summary', [DashboardController::class, 'kpiSummary']);
@@ -26,6 +29,4 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/invoices/{invoiceId}/pay', [PaymentController::class, 'pay'])
         ->middleware('permission:finance-invoice-create');
-
-    Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification']);
 });
