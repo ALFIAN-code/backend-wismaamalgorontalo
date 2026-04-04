@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Modules\Finance\Contracts\PaymentStrategyInterface;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\PaymentStatus;
+use Modules\Finance\Events\PaymentSettled;
 use Modules\Finance\Models\Payment; // dibutuhkan sebagai return type hint
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
 use Modules\Finance\Repositories\Contracts\PaymentRepositoryInterface;
@@ -63,6 +64,7 @@ class FinanceService
             if ($isApproved) {
                 $this->invoiceRepository->updateStatus($payment->invoice, InvoiceStatus::PAID->value);
                 $this->rentalService->activateLease($payment->invoice->lease_id);
+                event(new PaymentSettled($payment));
             }
 
             return $payment;
@@ -109,6 +111,7 @@ class FinanceService
 
             // Panggil fungsi untuk mengaktifkan sewa (kamar jadi tidak tersedia)
             $this->rentalService->activateLease($invoice->lease_id);
+            event(new PaymentSettled($payment));
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
             $this->paymentRepository->update($payment, ['status' => PaymentStatus::FAILED->value]);
             $this->invoiceRepository->updateStatus($invoice, InvoiceStatus::UNPAID->value); // Kembali ke unpaid agar bisa dibayar ulang
