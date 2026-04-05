@@ -83,7 +83,7 @@ class MaintenanceService
             $this->requestRepository->updateStatus($request, $data['status']);
         }
 
-        return $update->load('images');
+        return $update->load(['images', 'user']);
     }
 
     private function uploadImages(array $images, string $folder): array

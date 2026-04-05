@@ -9,6 +9,8 @@ use Modules\Maintenance\Http\Requests\StoreMaintenanceUpdate;
 use Modules\Maintenance\Services\MaintenanceService;
 use Modules\Maintenance\Transformers\MaintenanceRequestResource;
 
+use Modules\Maintenance\Transformers\MaintenanceRequestUpdateResource;
+
 class AdminMaintenanceController extends Controller
 {
     use ApiResponse;
@@ -36,6 +38,6 @@ class AdminMaintenanceController extends Controller
 
         $update = $this->maintenanceService->addUpdate(Auth::id(), $id, $validated, $images);
         
-        return $this->apiSuccess($update, 'Progres/balasan berhasil ditambahkan.', 201);
+        return $this->apiSuccess(new MaintenanceRequestUpdateResource($update), 'Progres/balasan berhasil ditambahkan.', 201);
     }
 }
