@@ -298,7 +298,14 @@ class DummyDataSeeder extends Seeder
             $imagesCount = $roomData['images_count'];
             unset($roomData['images_count']);
 
-            $room = Room::create($roomData);
+            $room = Room::create([
+                'number' => $roomData['number'],
+                'title' => $roomData['title'],
+                'price' => $roomData['price'],
+                'status' => $roomData['status'],
+                'description' => $roomData['description'],
+                'facilities' => $roomData['facilities'],
+            ]);
             $rooms[] = $room;
 
             // Create dummy images for each room
@@ -312,7 +319,7 @@ class DummyDataSeeder extends Seeder
 
                 // Generate physical file
                 $fullpath = storage_path('app/public/' . $imagePath);
-                $this->generatePlaceholder($fullpath, "Room " . $room->number, $room->type, 800, 600);
+                $this->generatePlaceholder($fullpath, "Room " . $room->number, $room->status, 800, 600);
             }
         }
 
