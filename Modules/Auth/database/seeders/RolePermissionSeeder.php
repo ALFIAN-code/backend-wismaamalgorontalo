@@ -145,6 +145,7 @@ class RolePermissionSeeder extends Seeder
             'setting-update',
             // Guest
             'view-guest',
+            'create-guest',
             'verify-guest-bill',
             'view-guest-bill',
         ];
@@ -163,6 +164,11 @@ class RolePermissionSeeder extends Seeder
             'finance-me-payment-view',
             // Profil (melengkapi biodata KTP sebelum sewa)
             'complete-resident-profile',
+            // Guest (menambahkan dan mengelola tamu)
+            'view-my-guest',
+            'create-guest',
+            'delete-guest',
+            'pay-guest-bill',
         ];
 
         // ─── Resident: penghuni aktif dengan sewa yang sudah dibayar ─────

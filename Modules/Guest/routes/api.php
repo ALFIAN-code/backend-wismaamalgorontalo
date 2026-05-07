@@ -18,9 +18,10 @@ Route::middleware(['auth:sanctum'])->prefix('guests')->group(function () {
 
 Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::get('/guests', [AdminGuestController::class, 'index'])->middleware('permission:view-guest');
+    Route::post('/guests', [AdminGuestController::class, 'store'])->middleware('permission:create-guest');
 
     // Admin bill routes
-    Route::get('/guest-bills', [AdminGuestBillController::class, 'index'])->middleware('permission:verify-guest-bill');
+    Route::get('/guest-bills', [AdminGuestBillController::class, 'index'])->middleware('permission:view-guest-bill');
     Route::post('/guest-bills/{id}/verify', [AdminGuestBillController::class, 'verify'])->middleware('permission:verify-guest-bill');
 });
 

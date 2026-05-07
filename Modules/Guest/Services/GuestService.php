@@ -3,6 +3,7 @@
 namespace Modules\Guest\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\Guest\Models\Guest;
 use Modules\Guest\Repositories\Contracts\GuestRepositoryInterface;
 use Modules\Guest\Services\GuestBillingService;
@@ -31,6 +32,38 @@ class GuestService
     public function addGuest(int $userId, array $data): Guest
     {
         $lease = $this->resolveActiveLease($userId);
+
+        $lease->loadMissing('room');
+
+        $billing = $this->billingService->calculateBilling($lease, $data['check_in_at'], $data['check_out_at']);
+
+        $guest = $this->guestRepository->create([
+            'lease_id'      => $lease->id,
+            'name'          => $data['name'],
+            'check_in_at'   => $data['check_in_at'],
+            'check_out_at'  => $data['check_out_at'],
+            'relationship'  => $data['relationship'],
+            'total_days'    => $billing['total_days'],
+            'billable_days' => $billing['billable_days'],
+            'charge_amount' => $billing['charge_amount'],
+        ]);
+
+        $this->billingService->createBillIfNeeded($guest, $billing['billable_days'], (float) $billing['charge_amount']);
+
+        return $guest;
+    }
+
+    public function addGuestByLease(int $leaseId, array $data): Guest
+    {
+        try {
+            $lease = $this->leaseRepository->findById($leaseId);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundHttpException('Data sewa tidak ditemukan.');
+        }
+
+        if ($lease->status !== LeaseStatus::ACTIVE) {
+            throw new HttpException(422, 'Sewa tidak aktif untuk menambahkan tamu.');
+        }
 
         $lease->loadMissing('room');
 
