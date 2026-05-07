@@ -47,6 +47,7 @@ class PermissionSeeder extends Seeder
 
             // ─── Finance ──────────────────────────────────────────────────
             ['name' => 'finance-dashboard-view',    'target' => 'finance', 'description' => 'Melihat dashboard ringkasan keuangan'],
+            ['name' => 'finance-payment-view',      'target' => 'finance', 'description' => 'Melihat seluruh riwayat pembayaran (admin)'],
             ['name' => 'finance-payment-verify',    'target' => 'finance', 'description' => 'Memverifikasi pembayaran manual'],
             ['name' => 'finance-invoice-view',      'target' => 'finance', 'description' => 'Melihat seluruh daftar tagihan (admin)'],
             ['name' => 'finance-invoice-create',    'target' => 'finance', 'description' => 'Membuat invoice pembayaran (penghuni)'],
@@ -86,10 +87,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'setting-update',             'target' => 'setting', 'description' => 'Menyimpan perubahan pengaturan'],
 
             // ─── Guest ────────────────────────────────────────────────────
-            ['name' => 'view-guest',    'target' => 'guest', 'description' => 'Melihat semua data tamu (admin)'],
-            ['name' => 'view-my-guest', 'target' => 'guest', 'description' => 'Melihat daftar tamu milik sendiri (penghuni aktif)'],
-            ['name' => 'create-guest',  'target' => 'guest', 'description' => 'Mendaftarkan tamu baru (penghuni aktif)'],
-            ['name' => 'delete-guest',  'target' => 'guest', 'description' => 'Menghapus data tamu milik sendiri (penghuni aktif)'],
+            ['name' => 'view-guest',         'target' => 'guest', 'description' => 'Melihat semua data tamu (admin)'],
+            ['name' => 'view-my-guest',      'target' => 'guest', 'description' => 'Melihat daftar tamu milik sendiri (penghuni aktif)'],
+            ['name' => 'create-guest',       'target' => 'guest', 'description' => 'Mendaftarkan tamu baru (penghuni aktif)'],
+            ['name' => 'delete-guest',       'target' => 'guest', 'description' => 'Menghapus data tamu milik sendiri (penghuni aktif)'],
+            ['name' => 'pay-guest-bill',     'target' => 'guest', 'description' => 'Membayar tagihan tamu (penghuni aktif)'],
+            ['name' => 'verify-guest-bill',  'target' => 'guest', 'description' => 'Memverifikasi pembayaran tagihan tamu (admin)'],
+            ['name' => 'view-guest-bill',    'target' => 'guest', 'description' => 'Melihat semua tagihan tamu (admin)'],
         ];
 
         foreach ($permissions as $permission) {

@@ -5,6 +5,7 @@ namespace Modules\Finance\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
 use Modules\Finance\Transformers\InvoiceResource;
 use Modules\Setting\Services\SettingService;
@@ -46,9 +47,26 @@ class InvoiceController extends Controller
             ], 404);
         }
 
-        $invoice->load(['lease.resident', 'lease.room', 'payments']);
+        $invoice->load(['lease.resident.user', 'lease.room', 'payments']);
 
         return $this->apiSuccess(new InvoiceResource($invoice), 'Detail tagihan berhasil diambil');
+    }
+
+    public function getPrintLink(int $id)
+    {
+        $invoice = $this->invoiceRepository->findById($id);
+
+        if (!$invoice) {
+            return response()->json(['success' => false, 'message' => 'Tagihan tidak ditemukan'], 404);
+        }
+
+        $url = URL::temporarySignedRoute(
+            'finance.invoice.print',
+            now()->addHours(2),
+            ['id' => $id]
+        );
+
+        return $this->apiSuccess(['url' => $url], 'Link cetak berhasil dibuat');
     }
 
     public function printPdf(int $id)
@@ -56,11 +74,22 @@ class InvoiceController extends Controller
         $invoice = $this->invoiceRepository->findById($id);
         if (!$invoice) abort(404);
 
-        $invoice->load(['lease.resident', 'lease.room', 'payments']);
+        $invoice->load(['lease.resident.user', 'lease.room', 'payments']);
 
         $settingService = app(SettingService::class);
         $wismaName = $settingService->getSettingValue('wisma_name', 'Wisma Amal Gorontalo');
 
-        return view('finance::invoice-print', compact('invoice', 'wismaName'));
+        $statusValue = is_object($invoice->status) ? $invoice->status->value : $invoice->status;
+        $isPaid = strtolower($statusValue) === 'paid';
+
+        $payment = null;
+        if ($isPaid) {
+            $payment = $invoice->payments
+                ->whereIn('status', ['verified', 'paid'])
+                ->sortByDesc('updated_at')
+                ->first();
+        }
+
+        return view('finance::invoice-print', compact('invoice', 'wismaName', 'isPaid', 'payment'));
     }
 }

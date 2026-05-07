@@ -46,7 +46,7 @@ class ResidentFinanceController extends Controller
         $totalUnpaid = collect($unpaidInvoices->items())->sum('amount');
         
         return $this->apiSuccess([
-            'resident_name' => $resident->name,
+            'resident_name' => $resident->user->name ?? null,
             'active_lease' => $activeLease ? [
                 'id' => $activeLease->id,
                 'room_number' => $activeLease->room->room_number ?? '-',

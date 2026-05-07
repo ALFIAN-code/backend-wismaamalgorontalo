@@ -37,7 +37,7 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
     Route::prefix('invoices')->group(function () {
         Route::get('/', [InvoiceController::class, 'index'])->middleware('permission:finance-invoice-view');
         Route::get('/{id}', [InvoiceController::class, 'show'])->middleware('permission:finance-invoice-view');
-        Route::get('/{id}/print', [InvoiceController::class, 'printPdf'])->middleware('permission:finance-invoice-view');
+        Route::get('/{id}/print-link', [InvoiceController::class, 'getPrintLink'])->middleware('permission:finance-invoice-view');
         Route::post('/{invoiceId}/pay', [PaymentController::class, 'pay'])->middleware('permission:finance-invoice-create');
     });
 

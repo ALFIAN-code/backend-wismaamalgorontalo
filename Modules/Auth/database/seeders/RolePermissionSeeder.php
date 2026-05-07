@@ -81,6 +81,9 @@ class RolePermissionSeeder extends Seeder
             'view-my-guest',
             'create-guest',
             'delete-guest',
+            'pay-guest-bill',
+            'verify-guest-bill',
+            'view-guest-bill',
         ];
 
         // ─── Admin: manajemen operasional, tanpa akses setting sistem ─────
@@ -112,6 +115,7 @@ class RolePermissionSeeder extends Seeder
             'approve-lease',
             // Finance
             'finance-dashboard-view',
+            'finance-payment-view',
             'finance-payment-verify',
             'finance-invoice-view',
             'finance-expense-view',
@@ -141,6 +145,8 @@ class RolePermissionSeeder extends Seeder
             'setting-update',
             // Guest
             'view-guest',
+            'verify-guest-bill',
+            'view-guest-bill',
         ];
 
         // ─── Member: tamu terdaftar, belum memiliki kamar ────────────────
@@ -183,6 +189,7 @@ class RolePermissionSeeder extends Seeder
             'view-my-guest',
             'create-guest',
             'delete-guest',
+            'pay-guest-bill',
         ];
 
         $superAdmin->syncPermissions($superAdminPermissions);

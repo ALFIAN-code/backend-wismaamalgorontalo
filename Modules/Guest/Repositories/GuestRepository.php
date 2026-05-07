@@ -12,6 +12,7 @@ class GuestRepository implements GuestRepositoryInterface
     public function getByLeaseId(int $leaseId): Collection
     {
         return Guest::where('lease_id', $leaseId)
+            ->with('bill')
             ->orderByDesc('check_in_at')
             ->get();
     }

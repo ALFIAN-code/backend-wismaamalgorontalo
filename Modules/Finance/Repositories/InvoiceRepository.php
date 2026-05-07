@@ -12,7 +12,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 {
     public function getPaginated(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Invoice::with(['lease.resident', 'lease.room'])->orderBy('created_at', 'desc');
+        $query = Invoice::with(['lease.resident.user', 'lease.room'])->orderBy('created_at', 'desc');
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -126,7 +126,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 
     public function getDueInvoices(int $limit = 5): Collection
     {
-        return Invoice::with(['lease.resident', 'lease.room'])
+        return Invoice::with(['lease.resident.user', 'lease.room'])
             ->where('status', InvoiceStatus::UNPAID->value)
             ->where('due_date', '<=', now()->addDays(7))
             ->orderBy('due_date', 'asc')

@@ -34,6 +34,11 @@ class GuestServiceProvider extends ServiceProvider
             \Modules\Guest\Repositories\Contracts\GuestRepositoryInterface::class,
             \Modules\Guest\Repositories\GuestRepository::class
         );
+
+        $this->app->bind(
+            \Modules\Guest\Repositories\Contracts\GuestBillRepositoryInterface::class,
+            \Modules\Guest\Repositories\GuestBillRepository::class
+        );
     }
 
     protected function registerCommands(): void {}

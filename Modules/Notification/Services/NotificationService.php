@@ -35,7 +35,11 @@ readonly class NotificationService
 
         $pdfLink = null;
         if ($this->settingService->isFeatureEnabled('feature_whatsapp_pdf_link')) {
-            $pdfLink = url("/finance/invoices/{$invoice->id}/print");
+            $pdfLink = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'finance.invoice.print',
+                now()->addHours(48),
+                ['id' => $invoice->id]
+            );
         }
 
         $message = $this->formatReceiptMessage(
@@ -87,7 +91,9 @@ readonly class NotificationService
             . "💰 *Total Bayar:* Rp{$amount}\n";
 
         if ($pdfLink) {
-            $msg .= "\n📥 *Unduh Invoice PDF:*\n" . $pdfLink . "\n";
+            $msg .= "\n📥 *Unduh Kwitansi PDF:*\n"
+                . $pdfLink . "\n"
+                . "⚠️ _Link berlaku selama 48 jam. Setelah itu, kwitansi tetap dapat dilihat melalui website atau aplikasi dengan login ke akun Anda._\n";
         }
 
         $msg .= "\nJika ada pertanyaan, silakan hubungi admin kami.\n\n"

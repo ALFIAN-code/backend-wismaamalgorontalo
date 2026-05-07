@@ -17,16 +17,25 @@ class Guest extends Model
         'check_in_at',
         'check_out_at',
         'relationship',
+        'total_days',
+        'billable_days',
+        'charge_amount',
     ];
 
     protected $casts = [
-        'check_in_at'  => 'datetime',
-        'check_out_at' => 'datetime',
-        'relationship' => GuestRelationship::class,
+        'check_in_at'    => 'datetime',
+        'check_out_at'   => 'datetime',
+        'relationship'   => GuestRelationship::class,
+        'charge_amount'  => 'decimal:2',
     ];
 
     public function lease()
     {
         return $this->belongsTo(Lease::class);
+    }
+
+    public function bill()
+    {
+        return $this->hasOne(GuestBill::class);
     }
 }
