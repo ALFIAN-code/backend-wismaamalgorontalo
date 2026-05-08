@@ -81,6 +81,28 @@ class ResidentFinanceController extends Controller
     }
 
     /**
+     * Get a single invoice by ID, verified to belong to the logged-in resident.
+     */
+    public function showInvoice(int $id)
+    {
+        $resident = $this->residentRepository->findByUserId(Auth::id());
+        if (!$resident) {
+            return $this->apiError('Data penghuni tidak ditemukan.', 404);
+        }
+
+        $invoice = $this->invoiceRepository->findById($id);
+
+        if (!$invoice || $invoice->lease->resident_id !== $resident->id) {
+            return $this->apiError('Invoice tidak ditemukan.', 404);
+        }
+
+        return (new InvoiceResource($invoice))->additional([
+            'success' => true,
+            'message' => 'Detail tagihan berhasil diambil',
+        ]);
+    }
+
+    /**
      * Get paginated payment history for the logged-in resident.
      */
     public function payments(Request $request)

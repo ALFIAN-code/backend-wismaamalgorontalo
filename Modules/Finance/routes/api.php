@@ -45,6 +45,7 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
     Route::prefix('me')->group(function () {
         Route::get('/summary', [ResidentFinanceController::class, 'summary'])->middleware('permission:finance-me-summary-view');
         Route::get('/invoices', [ResidentFinanceController::class, 'invoices'])->middleware('permission:finance-me-invoice-view');
+        Route::get('/invoices/{id}', [ResidentFinanceController::class, 'showInvoice'])->middleware('permission:finance-me-invoice-view');
         Route::get('/payments', [ResidentFinanceController::class, 'payments'])->middleware('permission:finance-me-payment-view');
     });
 });

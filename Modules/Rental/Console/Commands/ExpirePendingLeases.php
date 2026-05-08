@@ -38,9 +38,9 @@ class ExpirePendingLeases extends Command
                 'finished_at' => now(),
             ]);
 
-            // Kembalikan status kamar menjadi tersedia
+            // Kembalikan status kamar menjadi tersedia (kamar baru dipesan berstatus RESERVED)
             Room::where('id', $lease->room_id)
-                ->where('status', RoomStatus::OCCUPIED->value)
+                ->whereIn('status', [RoomStatus::RESERVED->value, RoomStatus::OCCUPIED->value])
                 ->update(['status' => RoomStatus::AVAILABLE->value]);
 
             $count++;

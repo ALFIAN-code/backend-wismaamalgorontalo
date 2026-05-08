@@ -214,8 +214,10 @@ class RentalService
                 ]);
             }
 
-            // Buka kamar jika ini adalah sewa yang sedang bersinggungan hari ini
-            if ($originalStatus === LeaseStatus::ACTIVE->value || $lease->start_date <= now()) {
+            // Bebaskan kamar: PENDING (belum mulai) selalu dibebaskan, ACTIVE/sudah mulai juga dibebaskan
+            if ($originalStatus === LeaseStatus::PENDING->value
+                || $originalStatus === LeaseStatus::ACTIVE->value
+                || $lease->start_date <= now()) {
                 $this->roomAvailabilityService->markAsAvailable($lease->room_id);
             }
 

@@ -41,11 +41,12 @@ class SettingService
     public function getPublicSettings(): array
     {
         return [
-            'wisma_name'                  => $this->getSettingValue('wisma_name', 'Sistem Manajemen Kos'),
-            'feature_daily_rental'        => $this->isDailyRentalEnabled(),
-            'feature_whatsapp_receipt'    => $this->isFeatureEnabled('feature_whatsapp_receipt'),
-            'feature_whatsapp_pdf_link'   => $this->isFeatureEnabled('feature_whatsapp_pdf_link'),
-            'feature_payment_midtrans'    => $this->isMidtransEnabled(),
+            'wisma_name'                   => $this->getSettingValue('wisma_name', 'Sistem Manajemen Kos'),
+            'feature_daily_rental'         => $this->isDailyRentalEnabled(),
+            'feature_whatsapp_receipt'     => $this->isFeatureEnabled('feature_whatsapp_receipt'),
+            'feature_whatsapp_pdf_link'    => $this->isFeatureEnabled('feature_whatsapp_pdf_link'),
+            'feature_payment_midtrans'     => $this->isMidtransEnabled(),
+            'midtrans_enabled_payments'    => config('finance.midtrans.enabled_payments', ['qris', 'gopay', 'shopeepay']),
         ];
     }
 
