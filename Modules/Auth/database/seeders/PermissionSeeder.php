@@ -48,6 +48,7 @@ class PermissionSeeder extends Seeder
             // ─── Finance ──────────────────────────────────────────────────
             ['name' => 'finance-dashboard-view',    'target' => 'finance', 'description' => 'Melihat dashboard ringkasan keuangan'],
             ['name' => 'finance-payment-verify',    'target' => 'finance', 'description' => 'Memverifikasi pembayaran manual'],
+            ['name' => 'finance-payment-view',      'target' => 'finance', 'description' => 'Melihat seluruh riwayat pembayaran (admin)'],
             ['name' => 'finance-invoice-view',      'target' => 'finance', 'description' => 'Melihat seluruh daftar tagihan (admin)'],
             ['name' => 'finance-invoice-create',    'target' => 'finance', 'description' => 'Membuat invoice pembayaran (penghuni)'],
             ['name' => 'finance-me-summary-view',   'target' => 'finance', 'description' => 'Melihat ringkasan keuangan pribadi (penghuni)'],
