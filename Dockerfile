@@ -9,7 +9,8 @@ RUN apk add --no-cache \
     libpng-dev \
     libwebp-dev \
     libjpeg-turbo-dev \
-    freetype-dev \
+    freetype-dev
+     \
     libzip-dev \
     icu-dev \
     oniguruma-dev \
