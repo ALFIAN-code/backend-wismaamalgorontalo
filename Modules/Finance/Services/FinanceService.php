@@ -97,7 +97,7 @@ class FinanceService
         return DB::transaction(function () use ($paymentId, $reason) {
             $payment = $this->paymentRepository->findOrFail($paymentId);
 
-            if ($payment->status !== PaymentStatus::PAID->value || $payment->payment_method !== 'midtrans') {
+            if ($payment->status !== PaymentStatus::PAID || $payment->payment_method !== 'midtrans') {
                 throw new \DomainException('Hanya metode Midtrans berstatus lunas yang dapat dikembalikan secara otomatis.');
             }
 
@@ -177,7 +177,7 @@ class FinanceService
             event(new PembayaranDibatalkan(
                 paymentId: $payment->id,
                 invoiceId: $invoice->id,
-                scheduleId: $invoice->lease_id,
+                scheduleId: $invoice->schedule_id ?? $invoice->lease_id ?? 0,
             ));
         }
     }

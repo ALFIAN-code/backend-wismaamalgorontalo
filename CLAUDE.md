@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Laravel 11 **modular monolithic** backend for a dormitory/boarding house (wisma) management system, using `nwidart/laravel-modules`. Active modules: Room, Schedule, Finance, Maintenance, Inventory, Guest, Notification, Auth, Setting.
 
-> **Refactor selesai (Fase 0–11).** Arsitektur sudah event-driven modular. Modul Rental dan Resident telah dihapus — digantikan oleh modul Schedule. Lihat `CATATAN_ARSITEKTUR.md` untuk detail arsitektur.
+> Refactor selesai (Fase 0–11). Arsitektur sudah event-driven modular. Modul Rental dan Resident telah **dihapus** — semua logika sewa kamar sekarang ada di modul **Schedule**. Lihat `CATATAN_ARSITEKTUR.md` untuk detail arsitektur.
 
 ## Key Documents
 
@@ -29,7 +29,7 @@ php artisan migrate:fresh --seed    # Drop all tables, re-run, and seed
 # New module
 php artisan module:make FeatureName # Scaffold a new module under Modules/
 
-# Testing (uses actual DB, not in-memory — see phpunit.xml)
+# Testing (uses actual SQLite DB, not in-memory — see phpunit.xml)
 php artisan test                    # All tests (Unit + Feature + Modules)
 php artisan test --filter=TestName  # Single test by name
 php artisan test --testsuite=Modules # Module tests only
@@ -37,6 +37,9 @@ php artisan test --testsuite=Modules # Module tests only
 # Code style
 ./vendor/bin/pint                   # Format PHP (PSR-12, auto-fix)
 ./vendor/bin/pint --test            # Check without fixing
+
+# Architecture validation
+./vendor/bin/deptrac analyse        # Enforce layer dependency rules (deptrac.yaml)
 
 # Production / Docker
 docker compose up -d
@@ -58,14 +61,16 @@ Repositories/
   Eloquent/         ← concrete Eloquent implementations
 Models/             ← Eloquent models and relations
 Transformers/       ← API Resources (JSON presentation layer)
-Enums/              ← typed status constants (e.g. LeaseStatus)
-Events/             ← domain events fired by this module
-Listeners/          ← listeners for events from other modules
+Enums/              ← typed status constants
+Listeners/          ← handlers for events fired by other modules
+Providers/
+  EventServiceProvider.php       ← registers this module's listeners
+  <Name>ServiceProvider.php      ← binds interfaces to implementations
 database/           ← module-specific migrations and seeders
 routes/api.php      ← module API routes
 ```
 
-Repository interfaces are bound to implementations in each module's `ServiceProvider`.
+Repository interfaces are bound to their Eloquent implementations inside each module's `<Name>ServiceProvider`.
 
 ### Request Flow
 
@@ -77,9 +82,9 @@ HTTP → Nginx → routes/api.php → Controller (validate via FormRequest)
     → ApiResponse trait → JSON
 ```
 
-### Architecture (final — refactor complete)
+### Three-Tier Module Hierarchy
 
-Three-tier separation so any business module can be toggled ON/OFF without breaking others:
+Enforced by `deptrac.yaml` — dependency direction is top-down only:
 
 ```
 INFRASTRUCTURE (always on)   Auth, Setting
@@ -87,11 +92,20 @@ CORE (always on)             Room, Schedule
 BUSINESS MODULES (optional)  Finance, Maintenance, Guest, Inventory, Notification
 ```
 
-**Rules:**
-- Business modules communicate only via **Laravel Events** — no direct service/repository calls across modules
-- Each module registers its own listeners in its own `Providers/EventServiceProvider.php`
-- The global `app/Providers/EventServiceProvider.php` only declares the event catalog (empty listeners)
-- `modules_statuses.json`: set a module to `false` to disable it completely — core still works
+Business modules may not import from each other directly. All cross-module communication goes through Laravel Events.
+
+### Event-Driven Communication
+
+Events live in `app/Events/` (global, owned by no single module):
+
+| Namespace | Events |
+|---|---|
+| `app/Events/Jadwal/` | `JadwalDibuat`, `JadwalSewaAktif`, `JadwalSewaSelesai`, `JadwalBatal`, `StatusKamarBerubah` |
+| `app/Events/Finance/` | `PembayaranDiterima`, `PembayaranDiverifikasi`, `PembayaranDibatalkan` |
+| `app/Events/Inventory/` | `InventariBaru`, `InventarisDiperbarui`, `InventarisDihapus` |
+| `app/Events/Maintenance/` | `LaporanKerusakanMasuk` |
+
+The global `app/Providers/EventServiceProvider.php` declares the event catalog (no listeners). Each module registers its own listeners in its own `Providers/EventServiceProvider.php`.
 
 ### API Response Convention
 
@@ -112,7 +126,7 @@ $this->apiError($message, $statusCode, $errors);
 
 ### Module Activation
 
-`modules_statuses.json` controls which modules are loaded. Set a module to `false` to disable its routes and providers without deleting code.
+`modules_statuses.json` controls which modules load. Set a module to `false` to disable its routes and providers without deleting code. `Rental` and `Resident` are already set to `false` (replaced by `Schedule`).
 
 ## Key Integrations
 
@@ -135,13 +149,11 @@ Copy `.env.example` to `.env` and set:
 
 `php artisan migrate` discovers module migrations automatically when the module is active.
 
-## Refactor Rules (must follow during active refactor phases)
+## Architectural Rules
 
-> See `ROADMAP_REFACTOR.md` for the full task list and `CATATAN_ARSITEKTUR.md` for the target architecture.
-
-1. One phase = one git branch. Never mix changes from two phases.
-2. API response shapes must not change — Flutter clients consume these endpoints.
-3. Database changes are additive — add new columns/tables first, migrate data, then drop old ones.
-4. Always run `php artisan test` after completing each task.
-5. No direct service calls across module boundaries — use Events.
-6. Test on `staging` before merging to `main`.
+1. **No direct cross-module calls** — business modules must communicate only via Laravel Events, never by injecting another module's Service or Repository.
+2. **Additive DB changes** — add columns/tables first, migrate data, then drop old ones. Never destructive-first.
+3. **API shapes are stable** — response structure consumed by Flutter clients must not change without coordinating a frontend update.
+4. **Run tests after every change** — `php artisan test`.
+5. **Run deptrac after structural changes** — `./vendor/bin/deptrac analyse` to verify no layer violations were introduced.
+6. **One branch per feature/phase** — never mix unrelated changes in the same branch.

@@ -12,7 +12,7 @@ class PaymentRepository implements PaymentRepositoryInterface
 {
     public function getPaginated(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
-        $query = Payment::with(['invoice.schedule.room'])->orderBy('created_at', 'desc');
+        $query = Payment::with(['invoice'])->orderBy('created_at', 'desc');
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -43,7 +43,7 @@ class PaymentRepository implements PaymentRepositoryInterface
 
     public function getPendingPayments(int $limit = 5): Collection
     {
-        return Payment::with(['invoice.schedule.room'])
+        return Payment::with(['invoice'])
             ->where('status', PaymentStatus::PENDING->value)
             ->latest()
             ->limit($limit)

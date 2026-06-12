@@ -41,18 +41,12 @@ class GuestBillRepository implements GuestBillRepositoryInterface
         $perPage = (int) ($filters['per_page'] ?? 10);
         $search = $filters['search'] ?? null;
 
-        $query = GuestBill::with([
-            'guest.lease.resident.user',
-            'guest.lease.room',
-        ])->orderByDesc('created_at');
+        $query = GuestBill::with(['guest'])->orderByDesc('created_at');
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('guest', function ($gq) use ($search) {
-                    $gq->where('name', 'like', "%{$search}%");
-                })->orWhereHas('guest.lease.resident.user', function ($uq) use ($search) {
-                    $uq->where('name', 'like', "%{$search}%");
-                });
+            $query->whereHas('guest', function ($gq) use ($search) {
+                $gq->where('name', 'like', "%{$search}%")
+                    ->orWhere('tenant_name', 'like', "%{$search}%");
             });
         }
 

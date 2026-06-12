@@ -29,8 +29,8 @@ class AdminGuestBillResource extends JsonResource
                 'total_days' => $this->guest?->total_days,
                 'billable_days' => $this->guest?->billable_days,
             ],
-            'penghuni' => $this->guest?->lease?->resident?->user?->name ?? '-',
-            'kamar' => $this->guest?->lease?->room?->number ?? '-',
+            'penghuni' => $this->guest?->tenant_name ?? '-',
+            'kamar' => '-',
         ];
     }
 }

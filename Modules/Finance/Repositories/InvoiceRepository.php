@@ -31,7 +31,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface
 
     public function findById(int $id): ?Invoice
     {
-        return Invoice::findOrFail($id);
+        return Invoice::find($id);
     }
 
     public function updateStatus(Invoice $invoice, string $status): Invoice

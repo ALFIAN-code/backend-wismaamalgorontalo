@@ -43,7 +43,7 @@ class PaymentController extends Controller
     public function show(int $id)
     {
         $payment = $this->paymentRepository->findOrFail($id);
-        $payment->load(['invoice.lease.resident.user', 'invoice.lease.room']);
+        $payment->load(['invoice']);
 
         return $this->apiSuccess(new PaymentResource($payment), 'Detail pembayaran berhasil diambil');
     }
