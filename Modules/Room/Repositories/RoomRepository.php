@@ -19,7 +19,7 @@ class RoomRepository implements RoomRepositoryInterface
             ->when(isset($filters['status']), function ($q) use ($filters) {
                 $q->where('status', $filters['status']);
             })
-            ->with(['images', 'activeLease'])
+            ->with(['images', 'activeSchedule'])
             ->latest()
             ->get();
     }

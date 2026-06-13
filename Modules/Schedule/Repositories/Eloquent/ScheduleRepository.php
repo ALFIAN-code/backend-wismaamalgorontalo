@@ -16,7 +16,7 @@ class ScheduleRepository implements ScheduleRepositoryInterface
 
     public function findById(int $id): Schedule
     {
-        $schedule = Schedule::find($id);
+        $schedule = Schedule::with('room')->find($id);
 
         if (! $schedule) {
             throw new NotFoundHttpException('Jadwal tidak ditemukan.');
@@ -76,6 +76,12 @@ class ScheduleRepository implements ScheduleRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
-        return $query->orderByDesc('start_date')->paginate(15);
+        if (! empty($filters['tenant_user_id'])) {
+            $query->where('tenant_user_id', $filters['tenant_user_id']);
+        }
+
+        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 15;
+
+        return $query->with('room')->orderByDesc('start_date')->paginate($perPage);
     }
 }

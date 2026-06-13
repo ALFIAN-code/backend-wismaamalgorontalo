@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Modules\Schedule\Services\ScheduleService;
 use Modules\Schedule\Transformers\ScheduleResource;
@@ -16,11 +17,14 @@ class ScheduleController extends Controller
 
     public function __construct(private readonly ScheduleService $scheduleService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): Response|JsonResponse
     {
-        $schedules = $this->scheduleService->ambilSemuaJadwal($request->only(['room_id', 'type', 'status']));
+        $schedules = $this->scheduleService->ambilSemuaJadwal($request->only(['room_id', 'type', 'status', 'per_page']));
 
-        return $this->apiSuccess(ScheduleResource::collection($schedules), 'Daftar jadwal berhasil diambil');
+        return ScheduleResource::collection($schedules)
+            ->additional(['success' => true])
+            ->response()
+            ->setStatusCode(200);
     }
 
     public function store(Request $request): JsonResponse
@@ -46,12 +50,7 @@ class ScheduleController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $schedule = $this->scheduleService->ambilJadwalAktifKamar($id)
-            ?? $this->scheduleService->ambilJadwalKamar($id);
-
-        if (is_iterable($schedule) && ! ($schedule instanceof \Modules\Schedule\Models\Schedule)) {
-            return $this->apiSuccess(ScheduleResource::collection($schedule), 'Daftar jadwal kamar');
-        }
+        $schedule = $this->scheduleService->ambilJadwalById($id);
 
         return $this->apiSuccess(new ScheduleResource($schedule), 'Detail jadwal');
     }
@@ -75,6 +74,21 @@ class ScheduleController extends Controller
         $schedule = $this->scheduleService->batalkanJadwal($id);
 
         return $this->apiSuccess(new ScheduleResource($schedule), 'Jadwal berhasil dibatalkan');
+    }
+
+    public function mySchedules(Request $request): Response|JsonResponse
+    {
+        $filters = array_merge(
+            $request->only(['type', 'status', 'per_page']),
+            ['tenant_user_id' => Auth::id()]
+        );
+
+        $schedules = $this->scheduleService->ambilSemuaJadwal($filters);
+
+        return ScheduleResource::collection($schedules)
+            ->additional(['success' => true])
+            ->response()
+            ->setStatusCode(200);
     }
 
     public function byKamar(int $roomId): JsonResponse

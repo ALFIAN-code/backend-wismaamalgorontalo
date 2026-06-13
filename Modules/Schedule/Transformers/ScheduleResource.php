@@ -23,6 +23,12 @@ class ScheduleResource extends JsonResource
                 'phone' => $this->tenant_phone,
                 'id_photo' => $this->tenant_id_photo,
             ],
+            'room' => $this->whenLoaded('room', fn () => [
+                'id' => $this->room->id,
+                'number' => $this->room->number,
+                'title' => $this->room->title,
+                'price' => $this->room->price,
+            ]),
             'activated_at' => $this->activated_at?->toDateTimeString(),
             'finished_at' => $this->finished_at?->toDateTimeString(),
             'created_at' => $this->created_at?->toDateTimeString(),

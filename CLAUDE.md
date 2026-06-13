@@ -157,3 +157,31 @@ Copy `.env.example` to `.env` and set:
 4. **Run tests after every change** — `php artisan test`.
 5. **Run deptrac after structural changes** — `./vendor/bin/deptrac analyse` to verify no layer violations were introduced.
 6. **One branch per feature/phase** — never mix unrelated changes in the same branch.
+
+## Testing Rules
+
+These rules apply to every code change, no exceptions.
+
+### Editing an existing feature
+1. Make the code change.
+2. Run the full test suite: `php artisan test`
+3. If any test fails — fix it before considering the task done. Failures may be in the edited module **or in another module** that depends on shared behavior.
+4. If the change is significant enough that existing tests no longer reflect the intended behavior (e.g. a method signature changed, a response field was renamed, business logic was redesigned), **update the affected tests first** to match the new behavior, then run the full suite.
+
+### Creating a new feature
+1. Write the feature code.
+2. Write tests following the same pattern as the existing test files in `Modules/<Name>/tests/`:
+   - **Unit tests** (`tests/Unit/`) — test Service and Listener logic in isolation using factories and `RefreshDatabase`. Use `Tests\TestCase` (not `PHPUnit\Framework\TestCase`) whenever the code uses Facades.
+   - **Feature tests** (`tests/Feature/`) — test Controller endpoints end-to-end using `actingAs()` + `withoutMiddleware()`. Cover both success (2xx) and failure cases (validation errors, 403, 404, 422).
+3. Run the full test suite: `php artisan test`
+4. All tests — old and new — must be green before the task is complete.
+
+### Test conventions (match existing style)
+- Use **Pest PHP** syntax (`test(...)`, `expect(...)`) for Feature and most Unit tests.
+- Test names follow the pattern `[BERHASIL] ...` / `[GAGAL] ...`.
+- Use `RefreshDatabase` on every test file that touches the database.
+- API route URLs always include the `/api/` prefix (e.g. `/api/finance/invoices`).
+- `apiSuccess()` returns `{status: true, ...}` — use `assertJsonFragment(['status' => true])`.
+- Index endpoints using `->additional(['success' => true])` return `{success: true, ...}` instead.
+- `DomainException` maps to HTTP **403** via the global exception handler.
+- Enum cast columns must be compared to the **enum value**, not its `.value` string.

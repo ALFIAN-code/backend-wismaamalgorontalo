@@ -150,11 +150,12 @@ test('[BERHASIL] daftar tagihan dapat difilter berdasarkan status', function () 
     expect($response->json('data'))->toHaveCount(2);
 });
 
-test('[GAGAL] mengembalikan 404 jika penghuni tidak memiliki tagihan', function () {
+test('[BERHASIL] mengembalikan list kosong jika penghuni tidak memiliki tagihan', function () {
     $response = $this->actingAs($this->penghuni)
         ->getJson('/api/finance/me/invoices');
 
-    $response->assertNotFound();
+    $response->assertOk();
+    expect($response->json('data'))->toBeArray()->toHaveCount(0);
 });
 
 // =========================================================

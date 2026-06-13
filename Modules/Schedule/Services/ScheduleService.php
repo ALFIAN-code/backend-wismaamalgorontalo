@@ -139,6 +139,11 @@ class ScheduleService
         return $updated;
     }
 
+    public function ambilJadwalById(int $scheduleId): Schedule
+    {
+        return $this->scheduleRepository->findById($scheduleId);
+    }
+
     public function ambilJadwalAktifKamar(int $roomId): ?Schedule
     {
         return $this->scheduleRepository->getActiveByRoomId($roomId);

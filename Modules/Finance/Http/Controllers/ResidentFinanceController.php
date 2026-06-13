@@ -62,11 +62,11 @@ class ResidentFinanceController extends Controller
         $filters = $request->only(['status']);
         $filters['tenant_user_id'] = $userId;
 
-        $invoices = $this->invoiceRepository->getPaginated($perPage, $filters);
-
-        if ($invoices->isEmpty()) {
-            return $this->apiError('Data penghuni tidak ditemukan.', 404);
+        if ($request->has('schedule_id')) {
+            $filters['schedule_ids'] = [(int) $request->query('schedule_id')];
         }
+
+        $invoices = $this->invoiceRepository->getPaginated($perPage, $filters);
 
         return InvoiceResource::collection($invoices)->additional([
             'success' => true,
