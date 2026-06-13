@@ -47,6 +47,9 @@ class SettingService implements ConfigProviderInterface
             'feature_whatsapp_pdf_link' => $this->isFeatureEnabled('feature_whatsapp_pdf_link'),
             'feature_payment_midtrans' => $this->isMidtransEnabled(),
             'midtrans_enabled_payments' => config('finance.midtrans.enabled_payments', ['qris', 'gopay', 'shopeepay']),
+            'bank_name' => $this->getSettingValue('bank_name', ''),
+            'bank_account' => $this->getSettingValue('bank_account', ''),
+            'bank_holder' => $this->getSettingValue('bank_holder', ''),
         ];
     }
 

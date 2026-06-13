@@ -21,4 +21,6 @@ interface ScheduleRepositoryInterface
     public function getActiveByTenantUserId(int $userId): ?Schedule;
 
     public function getAllPaginated(array $filters = []): mixed;
+
+    public function hasPendingOrActiveByRoomId(int $roomId): bool;
 }

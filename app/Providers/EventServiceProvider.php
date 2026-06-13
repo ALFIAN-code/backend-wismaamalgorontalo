@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\Finance\PembayaranDibatalkan;
 use App\Events\Finance\PembayaranDiterima;
 use App\Events\Finance\PembayaranDiverifikasi;
+use Modules\Finance\Events\PaymentSettled;
 use App\Events\Inventory\InventariBaru;
 use App\Events\Inventory\InventarisDihapus;
 use App\Events\Inventory\InventarisDiperbarui;
@@ -30,6 +31,7 @@ class EventServiceProvider extends ServiceProvider
         PembayaranDiterima::class => [],
         PembayaranDiverifikasi::class => [],
         PembayaranDibatalkan::class => [],
+        PaymentSettled::class => [],
         LaporanKerusakanMasuk::class => [],
         InventariBaru::class => [],
         InventarisDiperbarui::class => [],

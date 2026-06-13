@@ -60,6 +60,13 @@ class ScheduleRepository implements ScheduleRepositoryInterface
             ->first();
     }
 
+    public function hasPendingOrActiveByRoomId(int $roomId): bool
+    {
+        return Schedule::where('room_id', $roomId)
+            ->whereIn('status', [ScheduleStatus::PENDING->value, ScheduleStatus::ACTIVE->value])
+            ->exists();
+    }
+
     public function getAllPaginated(array $filters = []): mixed
     {
         $query = Schedule::query();

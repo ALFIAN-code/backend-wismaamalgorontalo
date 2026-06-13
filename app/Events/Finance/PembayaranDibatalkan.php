@@ -13,5 +13,9 @@ class PembayaranDibatalkan
         public readonly int $paymentId,
         public readonly int $invoiceId,
         public readonly int $scheduleId,
+        public readonly ?string $tenantName = null,
+        public readonly ?string $tenantPhone = null,
+        public readonly ?float $amount = null,
+        public readonly ?string $paymentStatus = null,
     ) {}
 }

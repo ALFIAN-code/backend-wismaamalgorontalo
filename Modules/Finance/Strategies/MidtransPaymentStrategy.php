@@ -81,6 +81,12 @@ class MidtransPaymentStrategy implements PaymentStrategyInterface
                     $snapParams['enabled_payments'] = $enabledPayments;
                 }
 
+                $snapParams['expiry'] = [
+                    'start_time' => now()->format('Y-m-d H:i:s O'),
+                    'unit' => 'minutes',
+                    'duration' => 15,
+                ];
+
                 $snapToken = Snap::getSnapToken($snapParams);
                 $this->paymentRepository->update($payment, [
                     'snap_token' => $snapToken,

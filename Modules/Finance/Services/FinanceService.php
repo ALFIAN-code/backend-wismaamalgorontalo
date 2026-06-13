@@ -63,6 +63,8 @@ class FinanceService
                 $this->invoiceRepository->updateStatus($payment->invoice, InvoiceStatus::PAID->value);
 
                 $invoice = $payment->invoice;
+                $invoice->load('schedule.room');
+                $room = $invoice->schedule?->room;
 
                 event(new PembayaranDiverifikasi(
                     paymentId: $payment->id,
@@ -72,7 +74,7 @@ class FinanceService
                     tenantName: $invoice->tenant_name ?? '',
                     tenantPhone: $invoice->tenant_phone ?? '',
                     invoiceNumber: $invoice->invoice_number,
-                    roomTitle: '',
+                    roomTitle: $room?->title ?? $room?->number ?? '',
                     roomNumber: $invoice->room_number ?? '',
                     startDate: $invoice->period_start?->toDateString() ?? '',
                     endDate: $invoice->period_end?->toDateString() ?? '',
@@ -80,11 +82,15 @@ class FinanceService
 
                 event(new PaymentSettled($payment));
             } else {
-                $scheduleId = $payment->invoice->schedule_id ?? 0;
+                $rejectedInvoice = $payment->invoice;
                 event(new PembayaranDibatalkan(
                     paymentId: $payment->id,
-                    invoiceId: $payment->invoice->id,
-                    scheduleId: $scheduleId,
+                    invoiceId: $rejectedInvoice->id,
+                    scheduleId: $rejectedInvoice->schedule_id ?? 0,
+                    tenantName: $rejectedInvoice->tenant_name ?? '',
+                    tenantPhone: $rejectedInvoice->tenant_phone ?? '',
+                    amount: (float) $rejectedInvoice->amount,
+                    paymentStatus: PaymentStatus::REJECTED->value,
                 ));
             }
 
@@ -118,11 +124,16 @@ class FinanceService
                     'admin_notes' => 'Refunded: '.$reason,
                 ]);
 
-                $this->invoiceRepository->updateStatus($payment->invoice, InvoiceStatus::UNPAID->value);
+                $refundedInvoice = $payment->invoice;
+                $this->invoiceRepository->updateStatus($refundedInvoice, InvoiceStatus::UNPAID->value);
                 event(new PembayaranDibatalkan(
                     paymentId: $payment->id,
-                    invoiceId: $payment->invoice->id,
-                    scheduleId: $payment->invoice->schedule_id ?? 0,
+                    invoiceId: $refundedInvoice->id,
+                    scheduleId: $refundedInvoice->schedule_id ?? 0,
+                    tenantName: $refundedInvoice->tenant_name ?? '',
+                    tenantPhone: $refundedInvoice->tenant_phone ?? '',
+                    amount: (float) $refundedInvoice->amount,
+                    paymentStatus: PaymentStatus::REFUNDED->value,
                 ));
 
                 return $payment;
@@ -178,6 +189,10 @@ class FinanceService
                 paymentId: $payment->id,
                 invoiceId: $invoice->id,
                 scheduleId: $invoice->schedule_id ?? $invoice->lease_id ?? 0,
+                tenantName: $invoice->tenant_name ?? '',
+                tenantPhone: $invoice->tenant_phone ?? '',
+                amount: (float) $invoice->amount,
+                paymentStatus: PaymentStatus::FAILED->value,
             ));
         }
     }

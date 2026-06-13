@@ -20,6 +20,10 @@ class ScheduleService
 
     public function buatJadwal(array $data): Schedule
     {
+        if ($this->scheduleRepository->hasPendingOrActiveByRoomId($data['room_id'])) {
+            throw new \DomainException('Kamar ini sudah memiliki jadwal sewa yang sedang berlangsung atau menunggu konfirmasi.');
+        }
+
         $schedule = $this->scheduleRepository->create([
             'room_id' => $data['room_id'],
             'type' => $data['type'],
@@ -102,7 +106,7 @@ class ScheduleService
             event(new JadwalSewaSelesai(
                 scheduleId: $updated->id,
                 roomId: $updated->room_id,
-                roomNumber: '',
+                roomNumber: $updated->room->number ?? '',
                 tenantName: $updated->tenant_name ?? '',
                 tenantPhone: $updated->tenant_phone ?? '',
                 endDate: $updated->end_date->toDateString(),
@@ -130,10 +134,11 @@ class ScheduleService
         event(new JadwalBatal(
             scheduleId: $updated->id,
             roomId: $updated->room_id,
-            roomNumber: '',
+            roomNumber: $updated->room->number ?? '',
             tipeJadwal: $updated->type->value,
             tenantName: $updated->tenant_name ?? '',
             tenantPhone: $updated->tenant_phone ?? '',
+            userId: $updated->tenant_user_id,
         ));
 
         return $updated;

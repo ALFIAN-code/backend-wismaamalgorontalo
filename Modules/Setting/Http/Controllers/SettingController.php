@@ -38,6 +38,9 @@ class SettingController extends Controller
             'settings.feature_whatsapp_receipt' => 'nullable|boolean',
             'settings.feature_whatsapp_pdf_link' => 'nullable|boolean',
             'settings.feature_payment_midtrans' => 'nullable|boolean',
+            'settings.bank_name' => 'nullable|string|max:100',
+            'settings.bank_account' => 'nullable|string|max:50',
+            'settings.bank_holder' => 'nullable|string|max:100',
         ]);
 
         $settingsToSave = $validator['settings'];

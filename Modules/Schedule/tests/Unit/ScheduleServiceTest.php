@@ -129,6 +129,76 @@ test('batalkanJadwal tidak bisa dilakukan pada jadwal yang sudah selesai', funct
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
 
+test('[GAGAL] buatJadwal ditolak jika kamar sudah memiliki jadwal pending', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    Schedule::create([
+        'room_id' => 10,
+        'type' => ScheduleType::SEWA->value,
+        'status' => ScheduleStatus::PENDING->value,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+    ]);
+
+    $service = app(ScheduleService::class);
+
+    expect(fn () => $service->buatJadwal([
+        'room_id' => 10,
+        'type' => 'sewa',
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-08-01',
+    ]))->toThrow(\DomainException::class);
+
+    Event::assertNotDispatched(JadwalDibuat::class);
+});
+
+test('[GAGAL] buatJadwal ditolak jika kamar sudah memiliki jadwal active', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    Schedule::create([
+        'room_id' => 11,
+        'type' => ScheduleType::SEWA->value,
+        'status' => ScheduleStatus::ACTIVE->value,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+    ]);
+
+    $service = app(ScheduleService::class);
+
+    expect(fn () => $service->buatJadwal([
+        'room_id' => 11,
+        'type' => 'sewa',
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-08-01',
+    ]))->toThrow(\DomainException::class);
+
+    Event::assertNotDispatched(JadwalDibuat::class);
+});
+
+test('[BERHASIL] buatJadwal berhasil jika kamar hanya memiliki jadwal finished', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    Schedule::create([
+        'room_id' => 12,
+        'type' => ScheduleType::SEWA->value,
+        'status' => ScheduleStatus::FINISHED->value,
+        'start_date' => '2026-05-01',
+        'end_date' => '2026-06-01',
+    ]);
+
+    $service = app(ScheduleService::class);
+
+    $schedule = $service->buatJadwal([
+        'room_id' => 12,
+        'type' => 'sewa',
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-08-01',
+    ]);
+
+    expect($schedule->status)->toBe(ScheduleStatus::PENDING);
+    Event::assertDispatched(JadwalDibuat::class);
+});
+
 test('ambilJadwalAktifKamar mengembalikan jadwal active atau null', function () {
     Schedule::create([
         'room_id' => 5,

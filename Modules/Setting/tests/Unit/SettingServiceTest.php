@@ -82,6 +82,9 @@ test('[BERHASIL] getPublicSettings mengembalikan semua key keuangan yang dibutuh
         'feature_whatsapp_pdf_link',
         'midtrans_enabled_payments',
         'wisma_name',
+        'bank_name',
+        'bank_account',
+        'bank_holder',
     ]);
 });
 
