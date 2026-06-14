@@ -172,6 +172,10 @@ class FinanceService
             $this->paymentRepository->update($payment, ['status' => PaymentStatus::PAID->value]);
             $this->invoiceRepository->updateStatus($invoice, InvoiceStatus::PAID->value);
 
+            $invoice->load('schedule.room');
+            $room = $invoice->schedule?->room;
+
+            // Dibutuhkan oleh AktifkanJadwalSetelahPembayaranDiterima di Schedule module
             event(new PembayaranDiterima(
                 paymentId: $payment->id,
                 invoiceId: $invoice->id,
@@ -179,6 +183,20 @@ class FinanceService
                 amount: (float) $invoice->amount,
                 tenantName: $invoice->tenant_name ?? '',
                 tenantPhone: $invoice->tenant_phone ?? '',
+            ));
+
+            event(new PembayaranDiverifikasi(
+                paymentId: $payment->id,
+                invoiceId: $invoice->id,
+                scheduleId: $invoice->schedule_id ?? 0,
+                amount: (float) $invoice->amount,
+                tenantName: $invoice->tenant_name ?? '',
+                tenantPhone: $invoice->tenant_phone ?? '',
+                invoiceNumber: $invoice->invoice_number ?? '',
+                roomTitle: $room?->title ?? $room?->number ?? '',
+                roomNumber: $invoice->room_number ?? '',
+                startDate: $invoice->period_start?->toDateString() ?? '',
+                endDate: $invoice->period_end?->toDateString() ?? '',
             ));
 
             event(new PaymentSettled($payment));

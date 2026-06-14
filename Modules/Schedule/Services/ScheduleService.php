@@ -24,6 +24,16 @@ class ScheduleService
             throw new \DomainException('Kamar ini sudah memiliki jadwal sewa yang sedang berlangsung atau menunggu konfirmasi.');
         }
 
+        if (($data['type'] ?? '') === 'sewa' && ! empty($data['tenant_user_id'])) {
+            $profile = \Modules\Auth\Models\UserProfile::where('user_id', $data['tenant_user_id'])->first();
+            if (! $profile || empty($profile->id_card_number) || empty($profile->phone_number) || empty($profile->address_ktp)) {
+                throw new \DomainException('Profil belum lengkap. Silakan lengkapi biodata Anda (NIK, nomor telepon, dan alamat KTP) sebelum memesan kamar.');
+            }
+            if (empty($data['tenant_phone'])) {
+                $data['tenant_phone'] = $profile->phone_number;
+            }
+        }
+
         $schedule = $this->scheduleRepository->create([
             'room_id' => $data['room_id'],
             'type' => $data['type'],

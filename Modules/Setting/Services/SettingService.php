@@ -13,7 +13,9 @@ class SettingService implements ConfigProviderInterface
 
     public function isFeatureEnabled(string $featureKey): bool
     {
-        return (bool) $this->settingRepository->getValueByKey($featureKey, false);
+        $value = $this->settingRepository->getValueByKey($featureKey, 'false');
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     public function setFeatureState(string $featureKey, bool $isEnabled, string $description = ''): void

@@ -74,14 +74,18 @@ class AuthController extends Controller
 
         if (! $user) {
             $guestRole = \Spatie\Permission\Models\Role::where('name', 'guest')->where('guard_name', 'api')->first();
-            $permissions = $guestRole ? $guestRole->permissions->pluck('name') : ['view-room'];
+            $permissions = $guestRole ? $guestRole->permissions->pluck('name') : collect(['view-room']);
 
-            return $this->apiSuccess($permissions, 'Guest permissions retrieved successfully');
+            return $this->apiSuccess([
+                'permissions' => $permissions->values()->all(),
+                'roles'       => ['guest'],
+            ], 'Guest permissions retrieved successfully');
         }
 
-        $permissions = $user->getAllPermissions()->pluck('name');
-
-        return $this->apiSuccess($permissions, 'User permissions retrieved successfully');
+        return $this->apiSuccess([
+            'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+            'roles'       => $user->getRoleNames()->values()->all(),
+        ], 'User permissions retrieved successfully');
     }
 
     public function updateProfile(Request $request)

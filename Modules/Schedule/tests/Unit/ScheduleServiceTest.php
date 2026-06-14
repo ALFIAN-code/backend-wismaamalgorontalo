@@ -6,6 +6,8 @@ use App\Events\Jadwal\JadwalSewaAktif;
 use App\Events\Jadwal\JadwalSewaSelesai;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Modules\Auth\Models\User;
+use Modules\Auth\Models\UserProfile;
 use Modules\Schedule\Enums\ScheduleStatus;
 use Modules\Schedule\Enums\ScheduleType;
 use Modules\Schedule\Models\Schedule;
@@ -197,6 +199,104 @@ test('[BERHASIL] buatJadwal berhasil jika kamar hanya memiliki jadwal finished',
 
     expect($schedule->status)->toBe(ScheduleStatus::PENDING);
     Event::assertDispatched(JadwalDibuat::class);
+});
+
+test('[GAGAL] buatJadwal ditolak jika tenant_user_id ada tapi profil belum diisi', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    $user = User::factory()->create();
+    $service = app(ScheduleService::class);
+
+    expect(fn () => $service->buatJadwal([
+        'room_id' => 20,
+        'type' => 'sewa',
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+        'tenant_user_id' => $user->id,
+    ]))->toThrow(\DomainException::class, 'Profil belum lengkap');
+
+    Event::assertNotDispatched(JadwalDibuat::class);
+});
+
+test('[GAGAL] buatJadwal ditolak jika profil ada tapi field wajib tidak lengkap', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    $user = User::factory()->create();
+    UserProfile::create([
+        'user_id'        => $user->id,
+        'id_card_number' => '',
+        'phone_number'   => '08123456789',
+        'gender'         => 'male',
+        'address_ktp'    => 'Jl. Contoh',
+    ]);
+    $service = app(ScheduleService::class);
+
+    expect(fn () => $service->buatJadwal([
+        'room_id' => 20,
+        'type' => 'sewa',
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+        'tenant_user_id' => $user->id,
+    ]))->toThrow(\DomainException::class, 'Profil belum lengkap');
+
+    Event::assertNotDispatched(JadwalDibuat::class);
+});
+
+test('[BERHASIL] buatJadwal berhasil jika tenant_user_id ada dan profil lengkap', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    $user = User::factory()->create();
+    UserProfile::create([
+        'user_id'        => $user->id,
+        'id_card_number' => '1234567890123456',
+        'phone_number'   => '08123456789',
+        'gender'         => 'male',
+        'address_ktp'    => 'Jl. Contoh No. 1, Gorontalo',
+    ]);
+    $service = app(ScheduleService::class);
+
+    $schedule = $service->buatJadwal([
+        'room_id' => 21,
+        'type' => 'sewa',
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+        'tenant_user_id' => $user->id,
+        'tenant_name' => $user->name,
+        'agreed_price' => 500000,
+    ]);
+
+    expect($schedule)->toBeInstanceOf(Schedule::class);
+    expect($schedule->status)->toBe(ScheduleStatus::PENDING);
+    Event::assertDispatched(JadwalDibuat::class);
+});
+
+test('[BERHASIL] buatJadwal mengisi tenant_phone dari profil jika tidak dikirim', function () {
+    Event::fake([JadwalDibuat::class]);
+
+    $user = User::factory()->create();
+    UserProfile::create([
+        'user_id'        => $user->id,
+        'id_card_number' => '1234567890123456',
+        'phone_number'   => '08199999999',
+        'gender'         => 'male',
+        'address_ktp'    => 'Jl. Contoh No. 1, Gorontalo',
+    ]);
+    $service = app(ScheduleService::class);
+
+    $schedule = $service->buatJadwal([
+        'room_id' => 22,
+        'type' => 'sewa',
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-07-01',
+        'tenant_user_id' => $user->id,
+        'tenant_name' => $user->name,
+        'agreed_price' => 500000,
+        // tenant_phone sengaja tidak dikirim
+    ]);
+
+    expect($schedule->tenant_phone)->toBe('08199999999');
+
+    Event::assertDispatched(JadwalDibuat::class, fn ($e) => $e->tenantPhone === '08199999999');
 });
 
 test('ambilJadwalAktifKamar mengembalikan jadwal active atau null', function () {

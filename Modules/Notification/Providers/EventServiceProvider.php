@@ -3,7 +3,6 @@
 namespace Modules\Notification\Providers;
 
 use App\Events\Finance\PembayaranDibatalkan;
-use App\Events\Finance\PembayaranDiterima;
 use App\Events\Finance\PembayaranDiverifikasi;
 use App\Events\Maintenance\LaporanKerusakanMasuk;
 use App\Events\Jadwal\JadwalBatal;
@@ -17,7 +16,6 @@ use Modules\Notification\Listeners\KirimNotifikasiJadwalSewaAktif;
 use Modules\Notification\Listeners\KirimNotifikasiJadwalSewaSelesai;
 use Modules\Notification\Listeners\KirimNotifikasiLaporanKerusakanMasuk;
 use Modules\Notification\Listeners\KirimNotifikasiPembayaranDibatalkan;
-use Modules\Notification\Listeners\KirimNotifikasiPembayaranDiterima;
 use Modules\Notification\Listeners\SendWhatsAppReceipt;
 
 class EventServiceProvider extends ServiceProvider
@@ -34,9 +32,6 @@ class EventServiceProvider extends ServiceProvider
         ],
         JadwalBatal::class => [
             KirimNotifikasiJadwalBatal::class,
-        ],
-        PembayaranDiterima::class => [
-            KirimNotifikasiPembayaranDiterima::class,
         ],
         PembayaranDibatalkan::class => [
             KirimNotifikasiPembayaranDibatalkan::class,

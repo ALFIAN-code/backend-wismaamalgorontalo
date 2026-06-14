@@ -2,7 +2,6 @@
 
 namespace Modules\Notification\Tests\Feature;
 
-use App\Events\Finance\PembayaranDiterima;
 use App\Events\Finance\PembayaranDiverifikasi;
 use App\Events\Jadwal\JadwalBatal;
 use App\Events\Jadwal\JadwalDibuat;
@@ -13,7 +12,6 @@ use Modules\Notification\Listeners\KirimNotifikasiJadwalBatal;
 use Modules\Notification\Listeners\KirimNotifikasiJadwalDibuat;
 use Modules\Notification\Listeners\KirimNotifikasiJadwalSewaAktif;
 use Modules\Notification\Listeners\KirimNotifikasiJadwalSewaSelesai;
-use Modules\Notification\Listeners\KirimNotifikasiPembayaranDiterima;
 use Modules\Notification\Listeners\SendWhatsAppReceipt;
 use Tests\TestCase;
 
@@ -41,12 +39,6 @@ class NotificationEventWiringTest extends TestCase
     {
         Event::fake();
         Event::assertListening(JadwalBatal::class, KirimNotifikasiJadwalBatal::class);
-    }
-
-    public function test_pembayaran_diterima_terhubung_ke_listener_notifikasi(): void
-    {
-        Event::fake();
-        Event::assertListening(PembayaranDiterima::class, KirimNotifikasiPembayaranDiterima::class);
     }
 
     public function test_pembayaran_diverifikasi_terhubung_ke_listener_notifikasi(): void
