@@ -35,14 +35,14 @@ class DamageReportService
 
         $request->load(['images', 'room']);
 
-        LaporanKerusakanMasuk::dispatch(
+        event(new LaporanKerusakanMasuk(
             reportId: $request->id,
             reporterName: $request->reporter_name,
             reporterPhone: $request->reporter_phone ?? '',
             description: $request->description,
             roomId: $request->room_id,
             roomNumber: $request->room?->number,
-        );
+        ));
 
         return $request;
     }
