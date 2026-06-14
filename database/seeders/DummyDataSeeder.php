@@ -14,39 +14,45 @@ class DummyDataSeeder extends Seeder
     public function run(): void
     {
         // Ensure directories exist
-        if (! Storage::disk('public')->exists('rooms')) {
+        if (!Storage::disk('public')->exists('rooms')) {
             Storage::disk('public')->makeDirectory('rooms');
         }
-        if (! Storage::disk('public')->exists('payments')) {
+        if (!Storage::disk('public')->exists('payments')) {
             Storage::disk('public')->makeDirectory('payments');
         }
 
         // Create Admin User
-        $admin = User::create([
-            'name' => 'Admin Wisma Amal',
-            'email' => 'admin@wismaamal.com',
-            'password' => bcrypt('password'),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@wismaamal.com'],
+            [
+                'name' => 'Admin Wisma Amal',
+                'password' => bcrypt('password'),
+            ]
+        );
         $admin->email_verified_at = now();
         $admin->save();
         $admin->assignRole('super-admin');
 
         // Create Admin Staff User (role: admin)
-        $staff1 = User::create([
-            'name' => 'Staff Admin',
-            'email' => 'staff@wismaamal.com',
-            'password' => bcrypt('password'),
-        ]);
+        $staff1 = User::firstOrCreate(
+            ['email' => 'staff@wismaamal.com'],
+            [
+                'name' => 'Staff Admin',
+                'password' => bcrypt('password'),
+            ]
+        );
         $staff1->email_verified_at = now();
         $staff1->save();
         $staff1->assignRole('admin');
 
         // Create sample Guest User (calon penghuni yang belum sewa)
-        $guest = User::create([
-            'name' => 'Guest User',
-            'email' => 'guest@wismaamal.com',
-            'password' => bcrypt('password'),
-        ]);
+        $guest = User::firstOrCreate(
+            ['email' => 'guest@wismaamal.com'],
+            [
+                'name' => 'Guest User',
+                'password' => bcrypt('password'),
+            ]
+        );
         $guest->email_verified_at = now();
         $guest->save();
         $guest->assignRole('member');
@@ -145,14 +151,16 @@ class DummyDataSeeder extends Seeder
 
         $users = [];
         foreach ($residentsData as $residentData) {
-            $user = User::create([
-                'name' => $residentData['name'],
-                'email' => $residentData['email'],
-                'password' => bcrypt('password'),
-            ]);
+            $user = User::firstOrCreate(
+                ['email' => $residentData['email']],
+                [
+                    'name' => $residentData['name'],
+                    'password' => bcrypt('password'),
+                ]
+            );
             $user->email_verified_at = now();
             $user->save();
-            $user->assignRole('member');
+            $user->assignRole('resident');
 
             $users[] = $user;
         }
@@ -286,28 +294,34 @@ class DummyDataSeeder extends Seeder
             $imagesCount = $roomData['images_count'];
             unset($roomData['images_count']);
 
-            $room = Room::create([
-                'number' => $roomData['number'],
-                'title' => $roomData['title'],
-                'price' => $roomData['price'],
-                'status' => $roomData['status'],
-                'description' => $roomData['description'],
-                'facilities' => $roomData['facilities'],
-            ]);
+            $room = Room::updateOrCreate(
+                ['number' => $roomData['number']],
+                [
+                    'title' => $roomData['title'],
+                    'price' => $roomData['price'],
+                    'status' => $roomData['status'],
+                    'description' => $roomData['description'],
+                    'facilities' => $roomData['facilities'],
+                ]
+            );
             $rooms[] = $room;
 
             // Create dummy images for each room
             for ($i = 1; $i <= $imagesCount; $i++) {
-                $imagePath = 'rooms/dummy-room-'.$room->number.'-'.$i.'.jpg';
-                RoomImage::create([
-                    'room_id' => $room->id,
-                    'image_path' => $imagePath,
-                    'order' => $i - 1,
-                ]);
+                $imagePath = 'rooms/dummy-room-' . $room->number . '-' . $i . '.jpg';
+                RoomImage::firstOrCreate(
+                    [
+                        'room_id' => $room->id,
+                        'order' => $i - 1,
+                    ],
+                    [
+                        'image_path' => $imagePath,
+                    ]
+                );
 
                 // Generate physical file
-                $fullpath = storage_path('app/public/'.$imagePath);
-                $this->generatePlaceholder($fullpath, 'Room '.$room->number, $room->status, 800, 600);
+                $fullpath = storage_path('app/public/' . $imagePath);
+                $this->generatePlaceholder($fullpath, 'Room ' . $room->number, $room->status, 800, 600);
             }
         }
 
@@ -428,7 +442,7 @@ class DummyDataSeeder extends Seeder
     private function generatePlaceholder($path, $text1, $text2, $width, $height)
     {
         $directory = dirname($path);
-        if (! is_dir($directory)) {
+        if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
 

@@ -40,5 +40,6 @@ class UserSeeder extends Seeder
             );
             $member->assignRole('member');
         }
+
     }
 }
