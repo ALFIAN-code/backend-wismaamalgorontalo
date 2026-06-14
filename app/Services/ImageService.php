@@ -39,7 +39,9 @@ class ImageService
      */
     public function uploadAndCompress(UploadedFile $file, string $folder, int $width = 1200, int $quality = 75): string
     {
-        $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME).'_'.uniqid().'.webp';
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $cleanName = \Illuminate\Support\Str::slug($originalName, '-');
+        $filename = $cleanName.'_'.uniqid().'.webp';
         $path = "$folder/$filename";
 
         // Create directory if not exists
@@ -78,7 +80,9 @@ class ImageService
      */
     public function createThumbnail(UploadedFile $file, string $folder, int $size = 300, int $quality = 70): string
     {
-        $filename = 'thumb_'.pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME).'_'.uniqid().'.webp';
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $cleanName = \Illuminate\Support\Str::slug($originalName, '-');
+        $filename = 'thumb_'.$cleanName.'_'.uniqid().'.webp';
         $path = "$folder/$filename";
 
         if (! Storage::disk('public')->exists($folder)) {
