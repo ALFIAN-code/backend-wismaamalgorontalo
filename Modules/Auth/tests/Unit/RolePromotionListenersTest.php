@@ -142,3 +142,61 @@ test('[BERHASIL] TurunkanKeRoleMember tidak error jika userId null', function ()
 
     expect(fn () => (new TurunkanKeRoleMember())->handle($event))->not->toThrow(\Throwable::class);
 });
+
+test('[BERHASIL] TurunkanKeRoleMember tidak turunkan role jika user masih punya sewa aktif lain', function () {
+    $user = User::factory()->create();
+    $user->assignRole('resident');
+
+    // Simulasi: sewa lain milik user ini masih aktif di room_schedules
+    \Illuminate\Support\Facades\DB::table('room_schedules')->insert([
+        'id'             => 99,
+        'room_id'        => 2,
+        'type'           => 'sewa',
+        'status'         => 'active',
+        'tenant_user_id' => $user->id,
+        'tenant_name'    => 'User1',
+        'start_date'     => now()->toDateString(),
+        'end_date'       => now()->addMonths(3)->toDateString(),
+        'agreed_price'   => 500000,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+
+    // Event dari sewa yang baru saja selesai (scheduleId berbeda dari yang aktif)
+    $event = new JadwalSewaSelesai(
+        scheduleId: 1,
+        roomId: 1,
+        roomNumber: '101',
+        tenantName: 'User1',
+        tenantPhone: '',
+        endDate: now()->toDateString(),
+        userId: $user->id,
+    );
+
+    (new TurunkanKeRoleMember())->handle($event);
+
+    // Role tidak boleh diturunkan karena masih ada sewa aktif lain
+    expect($user->fresh()->hasRole('resident'))->toBeTrue();
+    expect($user->fresh()->hasRole('member'))->toBeFalse();
+});
+
+test('[BERHASIL] TurunkanKeRoleMember turunkan role jika semua sewa sudah selesai', function () {
+    $user = User::factory()->create();
+    $user->assignRole('resident');
+
+    // room_schedules kosong (sudah finished semua) — tidak ada entri active
+    $event = new JadwalSewaSelesai(
+        scheduleId: 1,
+        roomId: 1,
+        roomNumber: '101',
+        tenantName: 'User1',
+        tenantPhone: '',
+        endDate: now()->toDateString(),
+        userId: $user->id,
+    );
+
+    (new TurunkanKeRoleMember())->handle($event);
+
+    expect($user->fresh()->hasRole('member'))->toBeTrue();
+    expect($user->fresh()->hasRole('resident'))->toBeFalse();
+});

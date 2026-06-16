@@ -4,6 +4,7 @@ namespace Modules\Auth\Listeners;
 
 use App\Events\Jadwal\JadwalBatal;
 use App\Events\Jadwal\JadwalSewaSelesai;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Auth\Models\User;
 
@@ -28,6 +29,18 @@ class TurunkanKeRoleMember
         }
 
         if (! $user->hasRole('resident')) {
+            return;
+        }
+
+        // Jika user masih punya sewa aktif lain, jangan turunkan role.
+        // Status sudah diubah ke finished/cancelled sebelum event difire,
+        // sehingga query ini secara otomatis mengecualikan jadwal yang baru saja selesai.
+        $masihAdaSewaAktif = DB::table('room_schedules')
+            ->where('tenant_user_id', $event->userId)
+            ->where('status', 'active')
+            ->exists();
+
+        if ($masihAdaSewaAktif) {
             return;
         }
 

@@ -30,23 +30,23 @@ test('[BERHASIL] penghuni dapat melihat ringkasan keuangan dengan struktur lengk
         ->assertJsonStructure([
             'data' => [
                 'resident_name',
-                'active_lease',
+                'active_leases',
                 'total_unpaid',
                 'unpaid_count',
             ],
         ]);
 });
 
-test('[BERHASIL] active_lease bernilai null jika tidak ada data di finance_active_tenants', function () {
+test('[BERHASIL] active_leases bernilai array kosong jika tidak ada data di finance_active_tenants', function () {
     $response = $this->actingAs($this->penghuni)
         ->getJson('/api/finance/me/summary');
 
     $response->assertOk()
-        ->assertJsonPath('data.active_lease', null)
+        ->assertJsonPath('data.active_leases', [])
         ->assertJsonPath('data.resident_name', 'Budi Santoso');
 });
 
-test('[BERHASIL] active_lease terisi jika penghuni terdaftar di finance_active_tenants', function () {
+test('[BERHASIL] active_leases terisi jika penghuni terdaftar di finance_active_tenants', function () {
     DB::table('finance_active_tenants')->insert([
         'schedule_id' => 10,
         'user_id'     => $this->penghuni->id,
@@ -61,10 +61,24 @@ test('[BERHASIL] active_lease terisi jika penghuni terdaftar di finance_active_t
         ->getJson('/api/finance/me/summary');
 
     $response->assertOk();
-    $activeLease = $response->json('data.active_lease');
-    expect($activeLease)->not->toBeNull();
-    expect($activeLease['room_number'])->toBe('101');
-    expect($activeLease['id'])->toBe(10);
+    $activeLeases = $response->json('data.active_leases');
+    expect($activeLeases)->toBeArray()->toHaveCount(1);
+    expect($activeLeases[0]['room_number'])->toBe('101');
+    expect($activeLeases[0]['id'])->toBe(10);
+});
+
+test('[BERHASIL] active_leases mengembalikan semua sewa aktif jika penghuni punya lebih dari satu', function () {
+    DB::table('finance_active_tenants')->insert([
+        ['schedule_id' => 10, 'user_id' => $this->penghuni->id, 'room_number' => '101', 'tenant_name' => 'Budi Santoso', 'end_date' => now()->addMonths(3)->toDateString(), 'created_at' => now(), 'updated_at' => now()],
+        ['schedule_id' => 20, 'user_id' => $this->penghuni->id, 'room_number' => '202', 'tenant_name' => 'Budi Santoso', 'end_date' => now()->addMonths(6)->toDateString(), 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    $response = $this->actingAs($this->penghuni)
+        ->getJson('/api/finance/me/summary');
+
+    $response->assertOk();
+    $activeLeases = $response->json('data.active_leases');
+    expect($activeLeases)->toBeArray()->toHaveCount(2);
 });
 
 test('[BERHASIL] total_unpaid menghitung akumulasi tagihan belum bayar milik penghuni', function () {

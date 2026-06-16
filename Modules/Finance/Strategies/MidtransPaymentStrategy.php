@@ -65,7 +65,13 @@ class MidtransPaymentStrategy implements PaymentStrategyInterface
         try {
             if ($coreApiExtra !== null) {
                 // ── Core API: langsung charge dengan metode spesifik ──────────
-                $params = array_merge($baseParams, $coreApiExtra);
+                $params = array_merge($baseParams, $coreApiExtra, [
+                    'custom_expiry' => [
+                        'order_time'      => now()->format('Y-m-d H:i:s O'),
+                        'expiry_duration' => 15,
+                        'unit'            => 'minute',
+                    ],
+                ]);
                 $response = CoreApi::charge($params);
                 // Konversi stdClass ke array; model cast 'array' akan handle JSON encoding
                 $paymentData = json_decode(json_encode($response), true);
