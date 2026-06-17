@@ -5,6 +5,7 @@ use Modules\Finance\Http\Controllers\DashboardController;
 use Modules\Finance\Http\Controllers\ExpenseController;
 use Modules\Finance\Http\Controllers\InvoiceController;
 use Modules\Finance\Http\Controllers\PaymentController;
+use Modules\Finance\Http\Controllers\PaymentMethodController;
 use Modules\Finance\Http\Controllers\ResidentFinanceController;
 use Modules\Finance\Http\Middleware\VerifyMidtransSignature;
 
@@ -12,6 +13,9 @@ Route::post('/finance/payments/midtrans/notification', [PaymentController::class
     ->middleware(VerifyMidtransSignature::class);
 
 Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('payment-methods', [PaymentMethodController::class, 'index'])
+        ->middleware('permission:finance-me-invoice-view');
+
     Route::prefix('dashboard')->middleware('permission:finance-dashboard-view')->group(function () {
         Route::get('/kpi-summary', [DashboardController::class, 'kpiSummary']);
         Route::get('/revenue-chart', [DashboardController::class, 'revenueChart']);

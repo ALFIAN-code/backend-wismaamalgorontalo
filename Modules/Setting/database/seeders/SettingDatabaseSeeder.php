@@ -27,5 +27,7 @@ class SettingDatabaseSeeder extends Seeder
         foreach ($settings as $key => $value) {
             $settingService->updateSetting($key, $value);
         }
+
+        $settingService->setEnabledMidtransPaymentMethods(['qris', 'gopay', 'bca_va', 'mandiri_va']);
     }
 }

@@ -11,4 +11,6 @@ interface ConfigProviderInterface
     public function isFeatureEnabled(string $key): bool;
 
     public function getSettingValue(string $key, mixed $default = ''): mixed;
+
+    public function getEnabledMidtransPaymentMethods(): array;
 }

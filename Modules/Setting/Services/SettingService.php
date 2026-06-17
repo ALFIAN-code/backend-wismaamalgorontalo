@@ -40,6 +40,40 @@ class SettingService implements ConfigProviderInterface
         return $this->settingRepository->getValueByKey($key, $default);
     }
 
+    public static function midtransMethodCatalog(): array
+    {
+        return [
+            'qris'       => 'QRIS',
+            'gopay'      => 'GoPay',
+            'shopeepay'  => 'ShopeePay',
+            'dana'       => 'DANA',
+            'ovo'        => 'OVO',
+            'linkaja'    => 'LinkAja',
+            'bca_va'     => 'BCA Virtual Account',
+            'bni_va'     => 'BNI Virtual Account',
+            'bri_va'     => 'BRI Virtual Account',
+            'permata_va' => 'Permata Virtual Account',
+            'mandiri_va' => 'Mandiri Virtual Account',
+        ];
+    }
+
+    public function getEnabledMidtransPaymentMethods(): array
+    {
+        $raw = $this->settingRepository->getValueByKey('midtrans_enabled_payment_methods', '[]');
+        $decoded = json_decode(is_string($raw) ? $raw : '[]', true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function setEnabledMidtransPaymentMethods(array $methods): void
+    {
+        $this->settingRepository->updateOrCreate(
+            'midtrans_enabled_payment_methods',
+            json_encode(array_values($methods)),
+            'Daftar metode pembayaran Midtrans yang diaktifkan'
+        );
+    }
+
     public function getPublicSettings(): array
     {
         return [
@@ -48,7 +82,7 @@ class SettingService implements ConfigProviderInterface
             'feature_whatsapp_receipt' => $this->isFeatureEnabled('feature_whatsapp_receipt'),
             'feature_whatsapp_pdf_link' => $this->isFeatureEnabled('feature_whatsapp_pdf_link'),
             'feature_payment_midtrans' => $this->isMidtransEnabled(),
-            'midtrans_enabled_payments' => config('finance.midtrans.enabled_payments', ['qris', 'gopay', 'shopeepay']),
+            'midtrans_enabled_payments' => $this->getEnabledMidtransPaymentMethods(),
             'bank_name' => $this->getSettingValue('bank_name', ''),
             'bank_account' => $this->getSettingValue('bank_account', ''),
             'bank_holder' => $this->getSettingValue('bank_holder', ''),
