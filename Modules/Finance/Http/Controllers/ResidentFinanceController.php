@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Finance\Enums\InvoiceStatus;
+use Modules\Finance\Enums\PaymentStatus;
 use Modules\Finance\Http\Requests\PerpanjangSewaRequest;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
 use Modules\Finance\Repositories\Contracts\PaymentRepositoryInterface;
@@ -154,6 +155,30 @@ class ResidentFinanceController extends Controller
             return $this->apiError('Harga sewa belum diatur. Hubungi admin.', 422);
         }
 
+        // Blokir jika ada tagihan perpanjangan yang masih aktif:
+        // - belum pernah dicoba bayar, ATAU ada pembayaran yang masih pending/diproses.
+        // Invoice yang semua upaya bayarnya sudah terminal (failed/rejected/refunded) boleh diretry.
+        $statusTerminal = [
+            PaymentStatus::FAILED->value,
+            PaymentStatus::REJECTED->value,
+            PaymentStatus::REFUNDED->value,
+        ];
+
+        $hasPendingExtension = DB::table('invoices')
+            ->where('schedule_id', $scheduleId)
+            ->where('status', InvoiceStatus::UNPAID->value)
+            ->where('period_start', '>', $schedule->end_date)
+            ->whereNotExists(function ($query) use ($statusTerminal) {
+                $query->from('payments')
+                    ->whereColumn('payments.invoice_id', 'invoices.id')
+                    ->whereIn('payments.status', $statusTerminal);
+            })
+            ->exists();
+
+        if ($hasPendingExtension) {
+            return $this->apiError('Masih ada tagihan perpanjangan yang belum dibayar. Selesaikan pembayaran terlebih dahulu sebelum memperpanjang kembali.', 422);
+        }
+
         $durationMonths = $request->integer('duration_months');
         $currentEndDate = Carbon::parse($schedule->end_date);
         $newEndDate     = $currentEndDate->copy()->addMonths($durationMonths);
@@ -161,33 +186,41 @@ class ResidentFinanceController extends Controller
         $suffix         = strtoupper(substr(md5(uniqid()), 0, 6));
         $invoiceNumber  = 'EXT-' . date('Ymd') . '-' . str_pad($scheduleId, 4, '0', STR_PAD_LEFT) . '-' . $suffix;
 
-        // Buat invoice untuk periode perpanjangan
-        $invoice = $this->invoiceRepository->create([
-            'schedule_id'    => $scheduleId,
-            'invoice_number' => $invoiceNumber,
-            'amount'         => $amount,
-            'status'         => InvoiceStatus::UNPAID->value,
-            'due_date'       => now()->toDateString(),
-            'tenant_user_id' => $userId,
-            'tenant_name'    => $activeTenant->tenant_name,
-            'room_number'    => $activeTenant->room_number,
-            'period_start'   => $currentEndDate->copy()->addDay()->toDateString(),
-            'period_end'     => $newEndDate->toDateString(),
-        ]);
+        // Bungkus cleanup + pembuatan invoice + pemrosesan pembayaran dalam satu transaction.
+        // Jika processPayment gagal (mis. Midtrans API error), invoice juga ikut di-rollback
+        // sehingga tidak ada invoice yatim yang memblokir retry berikutnya.
+        $payment = DB::transaction(function () use (
+            $scheduleId, $schedule, $activeTenant, $userId,
+            $request, $invoiceNumber, $amount, $currentEndDate, $newEndDate, $statusTerminal
+        ) {
+            // Batalkan invoice perpanjangan lama yang semua pembayarannya sudah gagal
+            // agar tidak ada duplikat invoice aktif untuk periode yang sama.
+            DB::table('invoices')
+                ->where('schedule_id', $scheduleId)
+                ->where('status', InvoiceStatus::UNPAID->value)
+                ->where('period_start', '>', $schedule->end_date)
+                ->update(['status' => InvoiceStatus::CANCELLED->value, 'updated_at' => now()]);
 
-        // Perpanjang end_date jadwal dan snapshot finance_active_tenants
-        DB::table('room_schedules')->where('id', $scheduleId)->update([
-            'end_date'   => $newEndDate->toDateString(),
-            'updated_at' => now(),
-        ]);
+            // Buat invoice untuk periode perpanjangan.
+            // end_date pada room_schedules TIDAK diubah di sini — akan diupdate oleh listener
+            // setelah pembayaran berhasil dikonfirmasi.
+            $invoice = $this->invoiceRepository->create([
+                'schedule_id'    => $scheduleId,
+                'invoice_number' => $invoiceNumber,
+                'amount'         => $amount,
+                'status'         => InvoiceStatus::UNPAID->value,
+                'due_date'       => now()->toDateString(),
+                'tenant_user_id' => $userId,
+                'tenant_name'    => $activeTenant->tenant_name,
+                'room_number'    => $activeTenant->room_number,
+                'period_start'   => $currentEndDate->copy()->addDay()->toDateString(),
+                'period_end'     => $newEndDate->toDateString(),
+            ]);
 
-        DB::table('finance_active_tenants')->where('schedule_id', $scheduleId)->update([
-            'end_date'   => $newEndDate->toDateString(),
-            'updated_at' => now(),
-        ]);
-
-        // Proses pembayaran
-        $payment = $this->financeService->processPayment($invoice->id, $request->validated());
+            // processPayment punya nested transaction sendiri; jika ia throw,
+            // exception merambat ke sini dan seluruh outer transaction di-rollback.
+            return $this->financeService->processPayment($invoice->id, $request->validated());
+        });
 
         return $this->apiSuccess(
             new PaymentResource($payment),
