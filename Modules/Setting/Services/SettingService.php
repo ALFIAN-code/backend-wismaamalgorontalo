@@ -86,7 +86,31 @@ class SettingService implements ConfigProviderInterface
             'bank_name' => $this->getSettingValue('bank_name', ''),
             'bank_account' => $this->getSettingValue('bank_account', ''),
             'bank_holder' => $this->getSettingValue('bank_holder', ''),
+            'feature_pengeluaran_tetap' => $this->isPengeluaranTetapEnabled(),
+            'pengeluaran_tetap_jenis_aktif' => $this->getJenisPengeluaranTetapAktif(),
         ];
+    }
+
+    public function isPengeluaranTetapEnabled(): bool
+    {
+        return $this->isFeatureEnabled('feature_pengeluaran_tetap');
+    }
+
+    public function getJenisPengeluaranTetapAktif(): array
+    {
+        $raw     = $this->settingRepository->getValueByKey('pengeluaran_tetap_jenis_aktif', '[]');
+        $decoded = json_decode(is_string($raw) ? $raw : '[]', true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function setJenisPengeluaranTetapAktif(array $jenis): void
+    {
+        $this->settingRepository->updateOrCreate(
+            'pengeluaran_tetap_jenis_aktif',
+            json_encode(array_values($jenis)),
+            'Daftar jenis pengeluaran tetap yang diaktifkan (listrik, air, wifi)'
+        );
     }
 
     public function isDailyRentalEnabled(): bool

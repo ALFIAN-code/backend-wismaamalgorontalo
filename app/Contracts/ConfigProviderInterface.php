@@ -13,4 +13,8 @@ interface ConfigProviderInterface
     public function getSettingValue(string $key, mixed $default = ''): mixed;
 
     public function getEnabledMidtransPaymentMethods(): array;
+
+    public function isPengeluaranTetapEnabled(): bool;
+
+    public function getJenisPengeluaranTetapAktif(): array;
 }

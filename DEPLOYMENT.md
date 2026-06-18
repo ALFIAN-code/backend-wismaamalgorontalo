@@ -117,6 +117,8 @@ php artisan db:seed --class=Modules\\Setting\\Database\\Seeders\\SettingDatabase
 |---|---|---|
 | `SettingDatabaseSeeder` | — | Nilai default konfigurasi: nama wisma, toggle fitur Midtrans/WhatsApp, info rekening bank (`bank_name`, `bank_account`, `bank_holder`). Wajib ada agar halaman keuangan member tidak kosong. |
 | `SettingDatabaseSeeder` | 2026-06-16 | Sekarang juga mengisi `midtrans_enabled_payment_methods` dengan default `["qris","gopay","bca_va","mandiri_va"]`. Jalankan ulang seeder di server lama agar key ini tersedia di DB. |
+| `SettingDatabaseSeeder` | 2026-06-17 | Menambah dua key baru: `feature_pengeluaran_tetap` (default: `false`) dan `pengeluaran_tetap_jenis_aktif` (default: `[]`). Jalankan ulang seeder di server lama agar key ini tersedia. Setelah itu, aktifkan fitur dan pilih jenis utilitas lewat endpoint `POST /api/v1/settings/update-bulk` atau halaman Pengaturan di admin panel. |
+| `PermissionSeeder` | 2026-06-17 | Menambah 4 permission baru: `finance-fixed-expense-view/create/update/delete`. Jalankan `php artisan db:seed --class=Modules\\Auth\\Database\\Seeders\\PermissionSeeder` lalu `php artisan db:seed --class=Modules\\Auth\\Database\\Seeders\\RolePermissionSeeder` di server lama agar role admin mendapat akses. |
 
 ---
 

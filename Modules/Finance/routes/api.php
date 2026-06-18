@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Finance\Http\Controllers\DashboardController;
 use Modules\Finance\Http\Controllers\ExpenseController;
+use Modules\Finance\Http\Controllers\FixedExpenseController;
 use Modules\Finance\Http\Controllers\InvoiceController;
 use Modules\Finance\Http\Controllers\PaymentController;
 use Modules\Finance\Http\Controllers\PaymentMethodController;
@@ -43,6 +44,14 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [InvoiceController::class, 'show'])->middleware('permission:finance-invoice-view');
         Route::get('/{id}/print-link', [InvoiceController::class, 'getPrintLink'])->middleware('permission:finance-invoice-view');
         Route::post('/{invoiceId}/pay', [PaymentController::class, 'pay'])->middleware('permission:finance-invoice-create');
+    });
+
+    Route::prefix('fixed-expenses')->group(function () {
+        Route::get('/', [FixedExpenseController::class, 'index'])->middleware('permission:finance-fixed-expense-view');
+        Route::get('/status', [FixedExpenseController::class, 'status'])->middleware('permission:finance-fixed-expense-view');
+        Route::post('/generate-bulan-ini', [FixedExpenseController::class, 'generateBulanIni'])->middleware('permission:finance-fixed-expense-update');
+        Route::get('/{id}', [FixedExpenseController::class, 'show'])->middleware('permission:finance-fixed-expense-view');
+        Route::put('/{id}', [FixedExpenseController::class, 'update'])->middleware('permission:finance-fixed-expense-update');
     });
 
     // Resident/Member Routes
