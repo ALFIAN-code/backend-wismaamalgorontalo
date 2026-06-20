@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\PaymentStatus;
+use Modules\Finance\Http\Requests\InitiatePerpanjangSewaRequest;
 use Modules\Finance\Http\Requests\PerpanjangSewaRequest;
 use Modules\Finance\Repositories\Contracts\InvoiceRepositoryInterface;
 use Modules\Finance\Repositories\Contracts\PaymentRepositoryInterface;
@@ -132,6 +133,93 @@ class ResidentFinanceController extends Controller
             'success' => true,
             'message' => 'Riwayat pembayaran Anda berhasil diambil',
         ]);
+    }
+
+    public function initiatePerpanjangManual(InitiatePerpanjangSewaRequest $request, int $scheduleId): JsonResponse
+    {
+        $userId = Auth::id();
+
+        $activeTenant = DB::table('finance_active_tenants')
+            ->where('user_id', $userId)
+            ->where('schedule_id', $scheduleId)
+            ->first();
+
+        if (! $activeTenant) {
+            return $this->apiError('Sewa aktif tidak ditemukan.', 404);
+        }
+
+        $schedule = DB::table('room_schedules')->where('id', $scheduleId)->first();
+
+        if (! $schedule || ! $schedule->agreed_price || (float) $schedule->agreed_price <= 0) {
+            return $this->apiError('Harga sewa belum diatur. Hubungi admin.', 422);
+        }
+
+        $statusTerminal = [
+            PaymentStatus::FAILED->value,
+            PaymentStatus::REJECTED->value,
+            PaymentStatus::REFUNDED->value,
+        ];
+
+        $hasPendingExtension = DB::table('invoices')
+            ->where('schedule_id', $scheduleId)
+            ->where('status', InvoiceStatus::UNPAID->value)
+            ->where('period_start', '>', $schedule->end_date)
+            ->where(function ($q) {
+                // Jika sudah melewati payment_expires_at, tidak dianggap pending
+                $q->whereNull('payment_expires_at')
+                  ->orWhere('payment_expires_at', '>', now());
+            })
+            ->whereNotExists(function ($query) use ($statusTerminal) {
+                $query->from('payments')
+                    ->whereColumn('payments.invoice_id', 'invoices.id')
+                    ->whereIn('payments.status', $statusTerminal);
+            })
+            ->exists();
+
+        if ($hasPendingExtension) {
+            return $this->apiError('Masih ada tagihan perpanjangan yang belum dibayar. Selesaikan pembayaran terlebih dahulu sebelum memperpanjang kembali.', 422);
+        }
+
+        $durationMonths   = $request->integer('duration_months');
+        $currentEndDate   = Carbon::parse($schedule->end_date);
+        $newEndDate       = $currentEndDate->copy()->addMonths($durationMonths);
+        $amount           = (float) $schedule->agreed_price * $durationMonths;
+        $suffix           = strtoupper(substr(md5(uniqid()), 0, 6));
+        $invoiceNumber    = 'EXT-' . date('Ymd') . '-' . str_pad($scheduleId, 4, '0', STR_PAD_LEFT) . '-' . $suffix;
+        $paymentExpiresAt = now()->addMinutes(15);
+
+        $invoice = DB::transaction(function () use (
+            $scheduleId, $schedule, $activeTenant, $userId,
+            $invoiceNumber, $amount, $currentEndDate, $newEndDate,
+            $paymentExpiresAt, $statusTerminal
+        ) {
+            // Batalkan invoice perpanjangan lama yang expired atau semua pembayarannya gagal
+            DB::table('invoices')
+                ->where('schedule_id', $scheduleId)
+                ->where('status', InvoiceStatus::UNPAID->value)
+                ->where('period_start', '>', $schedule->end_date)
+                ->update(['status' => InvoiceStatus::CANCELLED->value, 'updated_at' => now()]);
+
+            return $this->invoiceRepository->create([
+                'schedule_id'        => $scheduleId,
+                'invoice_number'     => $invoiceNumber,
+                'amount'             => $amount,
+                'status'             => InvoiceStatus::UNPAID->value,
+                'due_date'           => now()->toDateString(),
+                'payment_expires_at' => $paymentExpiresAt,
+                'tenant_user_id'     => $userId,
+                'tenant_name'        => $activeTenant->tenant_name,
+                'room_number'        => $activeTenant->room_number,
+                'period_start'       => $currentEndDate->copy()->addDay()->toDateString(),
+                'period_end'         => $newEndDate->toDateString(),
+            ]);
+        });
+
+        return $this->apiSuccess(
+            new InvoiceResource($invoice),
+            'Invoice perpanjangan berhasil dibuat. Silakan upload bukti transfer dalam 15 menit.',
+            201
+        );
     }
 
     public function perpanjangSewa(PerpanjangSewaRequest $request, int $scheduleId): JsonResponse

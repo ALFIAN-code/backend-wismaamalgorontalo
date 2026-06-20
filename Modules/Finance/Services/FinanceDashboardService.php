@@ -106,4 +106,9 @@ class FinanceDashboardService
     {
         return $this->paymentRepository->getPendingPayments($limit);
     }
+
+    public function getMidtransMonitoring(): array
+    {
+        return $this->paymentRepository->getMidtransSummary();
+    }
 }

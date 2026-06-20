@@ -12,6 +12,7 @@ use Modules\Finance\Repositories\ExpenseRepository;
 use Modules\Finance\Repositories\FixedExpenseEntryRepository;
 use Modules\Finance\Repositories\InvoiceRepository;
 use Modules\Finance\Repositories\PaymentRepository;
+use Modules\Finance\Console\Commands\ExpireManualPaymentInvoices;
 use Modules\Finance\Console\Commands\GenerateFixedExpenses;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -72,7 +73,7 @@ class FinanceServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        $this->commands([GenerateFixedExpenses::class]);
+        $this->commands([GenerateFixedExpenses::class, ExpireManualPaymentInvoices::class]);
     }
 
     /**

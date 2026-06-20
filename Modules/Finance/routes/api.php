@@ -22,6 +22,9 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/revenue-chart', [DashboardController::class, 'revenueChart']);
         Route::get('/due-invoices', [DashboardController::class, 'dueInvoices']);
         Route::get('/pending-payments', [DashboardController::class, 'pendingPayments']);
+        Route::get('/midtrans-monitoring', [DashboardController::class, 'midtransMonitoring'])
+            ->withoutMiddleware('permission:finance-dashboard-view')
+            ->middleware('permission:finance-payment-view');
     });
 
     Route::prefix('expenses')->group(function () {
@@ -61,5 +64,6 @@ Route::prefix('finance/')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/invoices/{id}', [ResidentFinanceController::class, 'showInvoice'])->middleware('permission:finance-me-invoice-view');
         Route::get('/payments', [ResidentFinanceController::class, 'payments'])->middleware('permission:finance-me-payment-view');
         Route::post('/leases/{scheduleId}/perpanjang', [ResidentFinanceController::class, 'perpanjangSewa'])->middleware('permission:finance-me-invoice-view');
+        Route::post('/leases/{scheduleId}/perpanjang/initiate', [ResidentFinanceController::class, 'initiatePerpanjangManual'])->middleware('permission:finance-me-invoice-view');
     });
 });
