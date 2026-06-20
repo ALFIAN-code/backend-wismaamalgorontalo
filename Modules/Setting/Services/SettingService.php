@@ -8,21 +8,16 @@ use Modules\Setting\Repositories\Contracts\SettingRepositoryInterface;
 class SettingService implements ConfigProviderInterface
 {
     public function __construct(
-        private readonly SettingRepositoryInterface $settingRepository
+        private readonly SettingRepositoryInterface $settingRepository,
+        private readonly FeatureToggleService $featureToggleService
     ) {}
 
     public function isFeatureEnabled(string $featureKey): bool
     {
-        $value = $this->settingRepository->getValueByKey($featureKey, 'false');
-
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        return $this->featureToggleService->isEnabled($featureKey);
     }
 
-    public function setFeatureState(string $featureKey, bool $isEnabled, string $description = ''): void
-    {
-        $valueString = $isEnabled ? 'true' : 'false';
-        $this->settingRepository->updateOrCreate($featureKey, $valueString, $description);
-    }
+
 
     public function updateSetting(string $key, $value, string $description = ''): void
     {
