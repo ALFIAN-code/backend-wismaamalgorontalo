@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Setting\Http\Controllers\BankAccountController;
+use Modules\Setting\Http\Controllers\MidtransFeeController;
 use Modules\Setting\Http\Controllers\PaymentMethodSettingController;
 use Modules\Setting\Http\Controllers\SettingController;
 
@@ -17,6 +18,11 @@ Route::prefix('v1')->group(function () {
             Route::prefix('payment-methods')->middleware('permission:setting-update')->group(function () {
                 Route::get('/', [PaymentMethodSettingController::class, 'index']);
                 Route::put('/', [PaymentMethodSettingController::class, 'update']);
+            });
+
+            Route::prefix('midtrans-fees')->middleware('permission:setting-update')->group(function () {
+                Route::get('/', [MidtransFeeController::class, 'index'])->withoutMiddleware('permission:setting-update')->middleware('permission:setting-view');
+                Route::put('/', [MidtransFeeController::class, 'update']);
             });
 
             Route::prefix('bank-accounts')->group(function () {

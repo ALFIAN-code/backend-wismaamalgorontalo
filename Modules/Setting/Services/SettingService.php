@@ -88,6 +88,7 @@ class SettingService implements ConfigProviderInterface
             'bank_holder' => $this->getSettingValue('bank_holder', ''),
             'feature_pengeluaran_tetap' => $this->isPengeluaranTetapEnabled(),
             'pengeluaran_tetap_jenis_aktif' => $this->getJenisPengeluaranTetapAktif(),
+            'midtrans_fee_config' => $this->getMidtransFeeConfig(),
         ];
     }
 
@@ -131,5 +132,51 @@ class SettingService implements ConfigProviderInterface
     public function isMidtransEnabled(): bool
     {
         return $this->isFeatureEnabled('feature_payment_midtrans');
+    }
+
+    public static function midtransFeeCatalog(): array
+    {
+        return [
+            'bank_transfer' => ['label' => 'Transfer Bank (VA)',  'type' => 'flat'],
+            'gopay'         => ['label' => 'GoPay',               'type' => 'percent'],
+            'qris'          => ['label' => 'QRIS',                'type' => 'percent'],
+            'shopeepay'     => ['label' => 'ShopeePay',           'type' => 'percent'],
+            'dana'          => ['label' => 'DANA',                'type' => 'percent'],
+            'ovo'           => ['label' => 'OVO',                 'type' => 'percent'],
+            'linkaja'       => ['label' => 'LinkAja',             'type' => 'percent'],
+        ];
+    }
+
+    public static function defaultMidtransFeeConfig(): array
+    {
+        return [
+            'bearer' => 'merchant',
+            'fees'   => [
+                'bank_transfer' => ['type' => 'flat',    'amount' => 4000],
+                'gopay'         => ['type' => 'percent', 'rate'   => 2.0],
+                'qris'          => ['type' => 'percent', 'rate'   => 0.7],
+                'shopeepay'     => ['type' => 'percent', 'rate'   => 2.0],
+                'dana'          => ['type' => 'percent', 'rate'   => 1.5],
+                'ovo'           => ['type' => 'percent', 'rate'   => 1.5],
+                'linkaja'       => ['type' => 'percent', 'rate'   => 1.5],
+            ],
+        ];
+    }
+
+    public function getMidtransFeeConfig(): array
+    {
+        $raw     = $this->settingRepository->getValueByKey('midtrans_fee_config', null);
+        $decoded = $raw ? json_decode(is_string($raw) ? $raw : '{}', true) : null;
+
+        return is_array($decoded) ? $decoded : self::defaultMidtransFeeConfig();
+    }
+
+    public function setMidtransFeeConfig(array $config): void
+    {
+        $this->settingRepository->updateOrCreate(
+            'midtrans_fee_config',
+            json_encode($config),
+            'Konfigurasi biaya transaksi Midtrans (bearer + tarif per metode)'
+        );
     }
 }
