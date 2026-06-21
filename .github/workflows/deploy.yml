@@ -48,23 +48,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Cloudflared
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          cat >> ~/.ssh/config <<EOF
+          Host ${{ secrets.SSH_HOST }}
+            User ${{ secrets.SSH_USERNAME }}
+            StrictHostKeyChecking no
+            ProxyCommand /usr/bin/env TUNNEL_SERVICE_AUTH_ID=${{ secrets.CF_CLIENT_ID }} TUNNEL_SERVICE_AUTH_SECRET=${{ secrets.CF_CLIENT_SECRET }} cloudflared access ssh --hostname %h
+          EOF
+
+      - name: Ensure Target Directory Exists
+        run: ssh ${{ secrets.SSH_HOST }} "mkdir -p ~/wismaamal-deploy"
       
       - name: Copy docker-compose via scp
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml"
-          target: "~/wismaamal-deploy"
+        run: scp docker-compose.yml ${{ secrets.SSH_HOST }}:~/wismaamal-deploy/
           
       - name: Deploy to Remote Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          ssh ${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/wismaamal-deploy
             # Create .env for docker-compose overrides
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
@@ -76,3 +86,4 @@ jobs:
             # Pull latest images and restart containers
             docker compose pull backend-app backend-web
             docker compose up -d backend-app backend-web
+          EOF
