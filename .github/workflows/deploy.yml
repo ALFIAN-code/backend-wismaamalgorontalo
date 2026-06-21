@@ -32,7 +32,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wismaamal-backend-app:latest
+          tags: ${{ env.REGISTRY }}/alfian-code/wismaamal-backend-app:latest
 
       - name: Build and push Backend Web (Nginx)
         uses: docker/build-push-action@v5
@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile.nginx
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wismaamal-backend-web:latest
+          tags: ${{ env.REGISTRY }}/alfian-code/wismaamal-backend-web:latest
 
   deploy:
     needs: build-and-push-image

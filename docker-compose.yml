@@ -18,7 +18,7 @@ services:
       - wismaamal_network
 
   backend-app:
-    image: ghcr.io/allvvnt/wismaamal-backend-app:latest
+    image: ghcr.io/alfian-code/wismaamal-backend-app:latest
     container_name: wismaamal_backend_app
     restart: unless-stopped
     environment:
@@ -38,7 +38,7 @@ services:
       - wismaamal_network
 
   backend-web:
-    image: ghcr.io/allvvnt/wismaamal-backend-web:latest
+    image: ghcr.io/alfian-code/wismaamal-backend-web:latest
     container_name: wismaamal_backend_web
     restart: unless-stopped
     ports:
@@ -49,7 +49,7 @@ services:
       - wismaamal_network
 
   frontend-web:
-    image: ghcr.io/allvvnt/wismaamal-frontend-web:latest
+    image: ghcr.io/alfian-code/wismaamal-frontend-web:latest
     container_name: wismaamal_frontend_web
     restart: unless-stopped
     ports:
