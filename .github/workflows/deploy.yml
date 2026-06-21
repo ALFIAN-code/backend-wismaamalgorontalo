@@ -1,71 +1,78 @@
-name: Build and Deploy Backend
+name: Deploy Backend
 
 on:
   push:
     branches:
-      - staging # Change this to your deployment branch if different
+      - staging
 
-permissions:
-  contents: read
-  packages: write
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  build-and-push:
+  build-and-push-image:
     runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
+      - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/ALFIAN-code/backend-wisma-amal
-          tags: |
-            type=raw,value=latest
-            type=sha,format=short
-
-      - name: Build and push Docker image
+      - name: Build and push Backend App
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          no-cache: true
-#          cache-from: type=gha
-#          cache-to: type=gha,mode=max
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wismaamal-backend-app:latest
+
+      - name: Build and push Backend Web (Nginx)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.nginx
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wismaamal-backend-web:latest
 
   deploy:
-    needs: build-and-push
+    needs: build-and-push-image
     runs-on: ubuntu-latest
     steps:
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Copy docker-compose via scp
+        uses: appleboy/scp-action@v0.1.7
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-
-      - name: Deploy to VPS via SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-        run: |
-          set -x
-          mkdir -p ~/.ssh
-          cat << 'EOF' > ~/.ssh/id_rsa
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          EOF
-          chmod 600 ~/.ssh/id_rsa
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "${{ secrets.REMOTE_USER }}@100.125.64.93" "cd ~/wisma-amal-deploy && docker compose pull && docker compose up -d --force-recreate && sleep 10 && docker compose exec -T app php artisan optimize:clear && docker compose exec -T app php artisan migrate --force --seed && docker compose exec -T app php artisan optimize && docker image prune -f"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml"
+          target: "~/wismaamal-deploy"
+          
+      - name: Deploy to Remote Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/wismaamal-deploy
+            # Create .env for docker-compose overrides
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
+            echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+            
+            # Login to GHCR (Server needs to be authenticated to pull)
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Pull latest images and restart containers
+            docker compose pull backend-app backend-web
+            docker compose up -d backend-app backend-web
