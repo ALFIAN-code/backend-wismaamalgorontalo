@@ -89,7 +89,7 @@ class SettingService implements ConfigProviderInterface
 
     public function isPengeluaranTetapEnabled(): bool
     {
-        return $this->isFeatureEnabled('feature_pengeluaran_tetap');
+        return $this->isFeatureEnabled('finance_fixed_expense');
     }
 
     public function getJenisPengeluaranTetapAktif(): array
@@ -116,17 +116,17 @@ class SettingService implements ConfigProviderInterface
 
     public function isWhatsAppReceiptEnabled(): bool
     {
-        return $this->isFeatureEnabled('feature_whatsapp_receipt');
+        return $this->isFeatureEnabled('notif_receipt');
     }
 
     public function isWhatsAppPdfLinkEnabled(): bool
     {
-        return $this->isFeatureEnabled('feature_whatsapp_pdf_link');
+        return $this->isFeatureEnabled('notif_pdf_link');
     }
 
     public function isMidtransEnabled(): bool
     {
-        return $this->isFeatureEnabled('feature_payment_midtrans');
+        return $this->isFeatureEnabled('finance_midtrans');
     }
 
     public static function midtransFeeCatalog(): array

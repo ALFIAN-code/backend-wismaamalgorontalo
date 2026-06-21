@@ -20,9 +20,9 @@ Route::prefix('v1')->group(function () {
                 Route::put('/', [PaymentMethodSettingController::class, 'update']);
             });
 
-            Route::prefix('feature-toggles')->middleware('role:super-admin')->group(function () {
+            Route::prefix('feature-toggles')->group(function () {
                 Route::get('/', [\Modules\Setting\Http\Controllers\FeatureToggleController::class, 'index']);
-                Route::patch('/{key}', [\Modules\Setting\Http\Controllers\FeatureToggleController::class, 'update']);
+                Route::patch('/{key}', [\Modules\Setting\Http\Controllers\FeatureToggleController::class, 'update'])->middleware('role:super-admin');
             });
 
             Route::prefix('midtrans-fees')->middleware('permission:setting-update')->group(function () {

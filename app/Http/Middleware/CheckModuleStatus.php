@@ -22,13 +22,24 @@ class CheckModuleStatus
         // Daftar mapping prefix path ke module key
         // Hanya memetakan modul yang bisa ditoggle (bisnis & core)
         $modulesMap = [
+            // Granular Finance Features (Lebih spesifik, taruh di atas)
+            'api/finance/expenses' => 'finance_expense',
+            'api/finance/fixed-expenses' => 'finance_fixed_expense',
+            'api/finance/me/leases' => 'finance_lease',
+            'api/finance/dashboard' => 'finance_dashboard',
+
+            // Modul Utama
             'api/finance' => 'finance',
-            'api/maintenance' => 'maintenance',
-            'api/guest' => 'guest',
+            'api/v1/damage-reports' => 'damage_report',
+            'api/v1/schedules' => 'maintenance_schedule',
             'api/inventory' => 'inventory',
+            'api/guests' => 'guest', // <-- menggunakan s (guests) sesuai route list
             'api/notification' => 'notification',
+            
+            // Modul Inti (Core)
             'api/room' => 'room',
             'api/schedule' => 'schedule',
+            'api/v1/room-schedules' => 'schedule',
         ];
 
         foreach ($modulesMap as $prefix => $moduleKey) {
