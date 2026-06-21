@@ -1,8 +1,8 @@
 name: Sync Fork from Upstream
 
 on:
-  schedule:
-    - cron: '0 */6 * * *' # Every 6 hours
+  repository_dispatch:
+    types: [sync-backend]
   workflow_dispatch:
 
 jobs:
